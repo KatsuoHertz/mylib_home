@@ -1,2 +1,5 @@
 # mylib_home
-code snippets for c++
+my utility functions for c++
+
+# Policies
+- One header file
