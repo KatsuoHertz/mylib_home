@@ -16,12 +16,11 @@ namespace my
 {
 
 // バージョン
-const char *VERSION = "2015.4.30";
+const char *VERSION = "2015.5.1";
   
-//----------------------------------------------------------------------------
-// MyPoint2T
-// ・2 次元座標値
-//----------------------------------------------------------------------------
+/**
+ * ２次元座標値
+ */
 
 template < typename T >
 struct MyPoint2T {
@@ -31,6 +30,9 @@ struct MyPoint2T {
   MyPoint2T( T x0, T y0 ) : x( x0 ), y( y0 ){ }
 };
 
+/**
+ * ２次元座標値の表示
+ */
 template < typename T >
 inline
 std::ostream & operator << ( std::ostream &os, const MyPoint2T<T> &p )
@@ -43,10 +45,9 @@ typedef MyPoint2T<int> MyPoint2i;
 typedef MyPoint2T<double> MyPoint2d;
 typedef MyPoint2T<short> MyPoint2s;
 
-//----------------------------------------------------------------------------
-// MyColor3T
-// ・RGB の画素値
-//----------------------------------------------------------------------------
+/**
+ * RGB の画素値
+ */
 
 template < typename T >
 struct MyColor3T {
@@ -85,6 +86,10 @@ struct MyColor3T {
   }
 };
 
+/**
+ * 構造体 MyColor3T の表示
+ */
+
 template < typename T >
 inline
 std::ostream & operator << ( std::ostream &os, const MyColor3T<T> &cl )
@@ -93,6 +98,9 @@ std::ostream & operator << ( std::ostream &os, const MyColor3T<T> &cl )
   return os;
 }
 
+/**
+ * 画素値のソート用コンパレータ
+ */
 template < typename T >
 struct MyCmpColor3 {
   bool operator () ( const MyColor3T<T> &a, const MyColor3T<T> &b ) const{
@@ -108,10 +116,9 @@ typedef MyColor3T<double> MyColor3d;
 typedef MyCmpColor3<unsigned short> MyCmpColor3us;
 typedef MyCmpColor3<double> MyCmpColor3d;
 
-//----------------------------------------------------------------------------
-// MyAbs
-//----------------------------------------------------------------------------
-
+/**
+ * 絶対値を返す
+ */
 template < class T >
 inline
 T
@@ -119,10 +126,9 @@ MyAbs( T a ){
   return (a > 0) ? a : -a;
 }
 
-//----------------------------------------------------------------------------
-// MyAbsDiff
-//----------------------------------------------------------------------------
-
+/**
+ * 差分の絶対値を返す
+ */
 template < class T >
 inline
 T
@@ -130,10 +136,9 @@ MyAbsDiff( T a, T b ){
   return (a > b) ? a - b : b - a;
 }
 
-//----------------------------------------------------------------------------
-// MyMin
-//----------------------------------------------------------------------------
-
+/**
+ * 小さい方を返す
+ */
 template < class T >
 inline
 T
@@ -141,6 +146,9 @@ MyMin( T a, T b ){
   return (a < b) ? a : b;
 }
 
+/**
+ * 最小のものを返す
+ */
 template < class T >
 inline
 T
@@ -149,10 +157,9 @@ MyMin( T a, T b, T c ){
   else return MyMin< T >( b, c );
 }
 
-//----------------------------------------------------------------------------
-// MyMax
-//----------------------------------------------------------------------------
-
+/**
+ * 大きい方を返す
+ */
 template < class T >
 inline
 T
@@ -160,6 +167,9 @@ MyMax( T a, T b ){
   return (a > b) ? a : b;
 }
 
+/**
+ * 最大のものを返す
+ */
 template < class T >
 inline
 T
@@ -168,24 +178,22 @@ MyMax( T a, T b, T c ){
   else return MyMax< T >( b, c );
 }
 
-//----------------------------------------------------------------------------
-// MySgn
-// ・符号を返す
-// ・引数が正の場合は、１
-// ・引数がゼロの場合は、０
-// ・引数が負の場合は、−１
-//----------------------------------------------------------------------------
+/**
+ * 符号を返す
+ * - 引数が正の場合は、１
+ * - 引数がゼロの場合は、０
+ * - 引数が負の場合は、−１
+ */
 template < typename T >
 inline
 T MySgn( T x ){
   return x == 0 ? 0 : ( x > 0 ? 1 : -1 );
 }
 
-//----------------------------------------------------------------------------
-// MySplit
-// ・文字列分割
-//----------------------------------------------------------------------------
-
+/**
+ * 文字列分割
+ * - タブ、空白で分割
+ */
 std::vector<std::string> 
 MySplit( const std::string &str 
          ){
@@ -195,11 +203,9 @@ MySplit( const std::string &str
   return res;
 }
 
-//----------------------------------------------------------------------------
-// MyEndsWith
-// ・指定した文字列で終わっているかどうか
-//----------------------------------------------------------------------------
-
+/**
+ * 指定した文字列で終わっているかどうか
+ */
 bool 
 inline
 MyEndsWith( std::string const& str, 
@@ -208,6 +214,10 @@ MyEndsWith( std::string const& str,
   return ext.size() <= str.size() && str.find(ext, str.size() - ext.size()) != str.npos;
 }
   
+/**
+ * 指定した文字列で終わっているかどうか
+ * - const char * 版
+ */
 bool 
 inline
 MyEndsWith( const char *str, 
@@ -216,11 +226,9 @@ MyEndsWith( const char *str,
   return MyEndsWith( std::string( str ), std::string( ext ) );
 }
 
-//----------------------------------------------------------------------------
-// MyBeginsWith
-// ・指定した文字列で始まっているかどうか
-//----------------------------------------------------------------------------
-
+/**
+ * 指定した文字列で始まっているかどうか
+ */
 bool
 inline
 MyBeginWith( const std::string &str,
@@ -228,6 +236,10 @@ MyBeginWith( const std::string &str,
   return str.find( start ) == 0;
 }
 
+/**
+ * 指定した文字列で始まっているかどうか
+ * - const char * 版
+ */
 bool
 inline
 MyBeginsWith( const char * str,
@@ -235,11 +247,10 @@ MyBeginsWith( const char * str,
   return std::string( str ).find( std::string( start ) ) == 0;
 }
 
-//----------------------------------------------------------------------------
-// MyFindOption
-// ・引数配列の中から指定した文字列と一致する要素のインデックスを返す。
-//----------------------------------------------------------------------------
-
+/**
+ * 引数解析
+ * - 引数配列の中から指定した文字列と一致する要素のインデックスを返す。
+ */
 int
 MyFindOption( int argc, 
               char *argv[], 
@@ -250,11 +261,10 @@ MyFindOption( int argc,
   return 0;
 }
 
-//----------------------------------------------------------------------------
-// MyGetFileName
-// ・ファイルパスの文字列の中からパスの部分を省いたファイル名部分だけを返す。
-//----------------------------------------------------------------------------
-
+/**
+ * ファイル名取得
+ * - ファイルパスの文字列の中からパスの部分を省いたファイル名部分だけを返す。
+ */
 std::string 
 inline
 MyGetFileName( const std::string &filepath ){
@@ -262,17 +272,21 @@ MyGetFileName( const std::string &filepath ){
   if (idx == std::string::npos) return filepath;
   else return filepath.substr( idx + 1, filepath.size() );
 }
+
+/**
+ * ファイル名取得
+ * - const char * 版
+ */
 std::string
 inline
 MyGetFileName( const char *filepath ){
   return MyGetFileName( std::string( filepath ) );
 }
 
-//----------------------------------------------------------------------------
-// MyGetFileNameBase
-// ・ファイル名の中から拡張子を除いた部分を返す。
-//----------------------------------------------------------------------------
-
+/**
+ * 拡張子抜きのファイル名取得
+ * - ファイル名の中から拡張子を除いた部分を返す。
+ */ 
 std::string
 inline
 MyGetFileNameBase( const std::string &filepath ){
@@ -280,51 +294,28 @@ MyGetFileNameBase( const std::string &filepath ){
   if (idx == std::string::npos) return filepath;
   else return filepath.substr( 0, idx );
 }
+
+/**
+ * 拡張子抜きのファイル名取得
+ * - const char * 版
+ */ 
 std::string
 inline
 MyGetFileNameBase( const char *filepath ){
   return MyGetFileNameBase( std::string( filepath ) );
 }
 
-//----------------------------------------------------------------------------
-// MyReadText
-// ・各行について空白文字で区切られた複数の値が並ぶテキストファイルを読み込む
-//----------------------------------------------------------------------------
-
-template < typename T >
-int
-MyReadText( const char *filepath, 
-            std::vector< std::vector< T > > &data_buf, // 読み込んだ結果
-            int col_num = 0 // 列数を必要であれば指定
-            ){
-  using namespace std;
-  ifstream fin( filepath );
-  if( !fin ) return -1;
-  while (fin.good()) {
-    string line;
-    getline( fin, line );
-    vector<string> la = MySplit( line );
-    if( ( col_num == 0 && la.size() > 0 ) ||
-        ( col_num != 0 && la.size() == col_num ) ){
-      vector< T > tmp;
-      for (int i = 0; i < la.size(); i++) tmp.push_back( atof( la[ i ].c_str() ) );
-      data_buf.push_back( tmp );
-    }
-  }
-  fin.close();
-  return 0;
-}
-
-//----------------------------------------------------------------------------
-// MyReadTextString
-// ・各行について空白文字で区切られた複数のデータを文字列として読み込む
-//----------------------------------------------------------------------------
-
+/**
+ * テキストデータの読み込み
+ * - 各行について空白文字で区切られた文字列の配列を読み込む。
+ * @param [out] data_buf 読み取った結果が string 型の二次元配列として入る。
+ * @param col_num 列数の指定。指定された列数の文字列が存在する行しか読まない。
+ */
 int
 MyReadTextString( const char *filepath, 
-                  std::vector< std::vector< std::string > > &data_buf, // 読み込んだ結果
-                  int col_num = 0 // 列数を必要であれば指定
-            ){
+                  std::vector< std::vector< std::string > > &data_buf,
+                  int col_num = 0
+                  ){
   using namespace std;
   ifstream fin( filepath );
   if( !fin ) return -1;
@@ -341,16 +332,76 @@ MyReadTextString( const char *filepath,
   return 0;
 }
 
-//----------------------------------------------------------------------------
-// MyReadTextMap
-// ・各行について key と value の書かれたテキストファイルを読み込む
-// ・どちらも文字列
-// ・３列以降は無視
-//----------------------------------------------------------------------------
+/**
+ * テキストデータの読み込み（整数版）
+ * - 各行について空白文字で区切られた数値が並ぶテキストファイルを読み込む
+ * - atoi() で整数変換される。
+ * @param [out] data_buf 読み取った結果が int 型の二次元配列として入る。
+ * @param col_num 列数の指定。指定された列数の文字列が存在する行しか読まない。
+ */
 int
-MyReadTextMap( const char *filepath, 
-               std::map< std::string, std::string > &data_buf // 読み込んだ結果
-            ){
+MyReadTextInt( const char *filepath, 
+               std::vector< std::vector< int > > &data_buf,
+               int col_num = 0
+               ){
+  using namespace std;
+  ifstream fin( filepath );
+  if( !fin ) return -1;
+  while (fin.good()) {
+    string line;
+    getline( fin, line );
+    vector<string> la = MySplit( line );
+    if( ( col_num == 0 && la.size() > 0 ) ||
+        ( col_num != 0 && la.size() == col_num ) ){
+      vector< int > tmp;
+      for (int i = 0; i < la.size(); i++) tmp.push_back( atoi( la[ i ].c_str() ) );
+      data_buf.push_back( tmp );
+    }
+  }
+  fin.close();
+  return 0;
+}
+
+/**
+ * テキストデータの読み込み（実数版）
+ * - 各行について空白文字で区切られた数値が並ぶテキストファイルを読み込む
+ * - atof() で実数変換される。
+ * @param [out] data_buf 読み取った結果が double 型の二次元配列として入る。
+ * @param col_num 列数の指定。指定された列数の文字列が存在する行しか読まない。
+ */
+int
+MyReadTextDouble( const char *filepath, 
+                  std::vector< std::vector< double > > &data_buf,
+                  int col_num = 0
+               ){
+  using namespace std;
+  ifstream fin( filepath );
+  if( !fin ) return -1;
+  while (fin.good()) {
+    string line;
+    getline( fin, line );
+    vector<string> la = MySplit( line );
+    if( ( col_num == 0 && la.size() > 0 ) ||
+        ( col_num != 0 && la.size() == col_num ) ){
+      vector< double > tmp;
+      for (int i = 0; i < la.size(); i++) tmp.push_back( atof( la[ i ].c_str() ) );
+      data_buf.push_back( tmp );
+    }
+  }
+  fin.close();
+  return 0;
+}
+
+/**
+ * テキストデータの読み込み
+ * - 各行について key と value の書かれたテキストファイルを map として読み込む
+ * - 各行の最初の２列だけ。３列目以降は無視。
+ * - key と value のどちらも string 型として読み込まれる。
+ */
+int
+MyReadTextMapString( const char *filepath, 
+                     std::map< std::string, std::string > &data_buf
+                     ){
   using namespace std;
   ifstream fin( filepath );
   if( !fin ) return -1;
@@ -364,16 +415,14 @@ MyReadTextMap( const char *filepath,
   return 0;
 }
 
-//----------------------------------------------------------------------------
-// MyCalcHist
-// ・vector の要素のヒストグラムを計算
-//----------------------------------------------------------------------------
-
+/**
+ * ベクトル演算：要素のヒストグラムを計算
+ */
 template < typename T >
 void
-MyCalcHist( const std::vector< T > &data,
-            std::map< T, int > &hist
-            ){
+MyVecHist( const std::vector< T > &data,
+           std::map< T, int > &hist
+           ){
   using namespace std;
   hist.clear();
   for( typename vector< T >::const_iterator it = data.begin(); it != data.end(); it++ ){
@@ -382,19 +431,19 @@ MyCalcHist( const std::vector< T > &data,
   }
 }
 
-//----------------------------------------------------------------------------
-// MyGetMostFrequentElement
-// ・vector の要素の中から最頻の要素を抽出
-//----------------------------------------------------------------------------
-
+/**
+ * ベクトル演算：要素の中から最頻の要素を返す
+ * @param[out] count 頻度（出現回数）が入る。
+ * @return 最頻の要素の値
+ */
 template < typename T >
 T
-MyGetMostFrequentElement( const std::vector< T > &data,
-                          int *count = NULL // 最頻値の数が入る
-                          ){
+MyVecMostFrequentElem( const std::vector< T > &data,
+                       int *count = NULL // 最頻値の数が入る
+                       ){
   using namespace std;
   map< T, int > hist;
-  MyCalcHist( data, hist );
+  MyVecHist( data, hist );
   int max_val = 0;
   int key_at_max = 0;
   for( typename map< T, int >::const_iterator it = hist.begin(); it != hist.end(); it++ ){
@@ -407,11 +456,10 @@ MyGetMostFrequentElement( const std::vector< T > &data,
   return key_at_max;
 }
 
-//----------------------------------------------------------------------------
-// MyGetPixel
-// ・画素値の取得
-//----------------------------------------------------------------------------
-
+/**
+ * 画素値の取得
+ * - プレーンごと
+ */
 unsigned short
 inline
 MyGetPixel( const IplImage *img_in,
@@ -429,11 +477,10 @@ MyGetPixel( const IplImage *img_in,
   }
 }
 
-//----------------------------------------------------------------------------
-// MySetPixel
-// ・画素値のセット
-//----------------------------------------------------------------------------
-
+/**
+ * 画素値のセット
+ * - プレーンごと
+ */
 void
 inline
 MySetPixel( IplImage *img_in,
@@ -452,6 +499,10 @@ MySetPixel( IplImage *img_in,
   }
 }
 
+/**
+ * 画素値のセット
+ * - RGB プレーンまとめて
+ */
 void
 inline
 MySetPixel( IplImage *img_in,
@@ -473,6 +524,10 @@ MySetPixel( IplImage *img_in,
   }
 }
 
+/**
+ * 画素値のセット
+ * - 構造体で
+ */
 void
 inline
 MySetPixel( IplImage *img_in,
@@ -492,22 +547,25 @@ MySetPixel( IplImage *img_in,
   }
 }
 
-//----------------------------------------------------------------------------
-// MyPixelExpansion
-// ・領域膨張
-// ・指定された画像の指定された画素位置を起点として領域膨張を行う。
-// ・隣接画素のうち、起点画素との画素値の差分が RGB 共に thres 以下の画素を同一領域として扱う。
-// ・同一領域と判定された画素位置の画素値を 0 以外にセットした画像を返す。
-// ・領域のサイズ（画素数）を返す
-//----------------------------------------------------------------------------
+/**
+ * 領域膨張
+ * - 指定された画像の指定された画素位置を起点として領域膨張を行う。
+ * - 隣接画素のうち、起点画素との画素値の差分が RGB 共に thres 以下の画素を同一領域として扱う。
+ * @param x 起点の x 座標
+ * @param y 起点の y 座標
+ * @param thres 同一画素と判定するための画素値の差分絶対値の閾値
+ * @param [out] img_out 同一領域と判定された画素位置の画素値を 0 以外にセットした画像を返す。
+ * @param pix_val 出力画像（img_out）について、領域内と判定された画素の値をいくつにするか。デフォルトは１。
+ * @return 領域のサイズ（画素数）
+ */
 
 int
-MyPixelExpansion( const IplImage *img_in, // RGB 3 チャンネル画像
+MyPixelExpansion( const IplImage *img_in,
                   int x,
                   int y,
-                  int thres, // 同一画素と判定する
-                  IplImage *img_out, // 領域外：0 領域内：1
-                  int pix_val = 1 // 領域内の値を1以外にしたい場合（ 2以上）
+                  int thres,
+                  IplImage *img_out,
+                  int pix_val = 1
                   ){
   using namespace std;
   // 入力チェック
@@ -610,21 +668,31 @@ MyPixelExpansion( const IplImage *img_in, // RGB 3 チャンネル画像
   return area_size;
 }
 
-// alias
+/**
+ * 領域膨張
+ * - MyPixelExpansion のエイリアス。
+ */
+
 int MyAreaExpansion( const IplImage *img_in, int x, int y, int thres,  IplImage *img_out,
                      int pix_val = 1 ){
   return MyPixelExpansion( img_in, x, y, thres, img_out, pix_val );
 }
 
-//----------------------------------------------------------------------------
-// MyInverseMat3x3
-// ・3x3 の逆行列：解析的
-//----------------------------------------------------------------------------
-
+/**
+ * 行列演算：逆行列
+ * - 3x3 行列の解析解
+ * @param [in] src 計算対象の行列。
+ * @param [out] dst メモリが確保済みでなければ内部で確保。src と同じサイズの確保済みを渡しても OK 。
+ * @return 行列式の値を返す。行列式がゼロの場合はエラー。
+ */
 double
 inline
-MyInverseMat3x3( const double src[][ 3 ], double dst[][ 3 ] )
+MyMatInv3x3( const std::vector< std::vector< double > > &src,
+             std::vector< std::vector< double > > &dst )
 {
+  assert( src.size() == 3 );
+  assert( src[ 0 ].size() == 3 );
+
   double detA =
       src[0][0] * src[1][1] * src[2][2] +
       src[1][0] * src[2][1] * src[0][2] +
@@ -632,7 +700,15 @@ MyInverseMat3x3( const double src[][ 3 ], double dst[][ 3 ] )
       src[0][0] * src[2][1] * src[1][2] -
       src[2][0] * src[1][1] * src[0][2] -
       src[1][0] * src[0][1] * src[2][2];
-  
+
+  assert( detA != 0 );
+
+  if( dst.empty() ) dst.resize( 3, std::vector< double >( 3 ) );
+  else{
+    assert( dst.size() == 3 );
+    assert( dst[ 0 ].size() == 3 );
+  }
+
   dst[0][0] = src[1][1] * src[2][2] - src[1][2] * src[2][1];
   dst[0][1] = src[0][2] * src[2][1] - src[0][1] * src[2][2];
   dst[0][2] = src[0][1] * src[1][2] - src[0][2] * src[1][1];
@@ -642,7 +718,7 @@ MyInverseMat3x3( const double src[][ 3 ], double dst[][ 3 ] )
   dst[2][0] = src[1][0] * src[2][1] - src[1][1] * src[2][0];
   dst[2][1] = src[0][1] * src[2][0] - src[0][0] * src[2][1];
   dst[2][2] = src[0][0] * src[1][1] - src[0][1] * src[1][0];
-  
+
   for( int i = 0; i < 3; i++ ){
     for( int j = 0; j < 3; j++ ){
       dst[ i ][ j ] /= detA;
@@ -652,15 +728,21 @@ MyInverseMat3x3( const double src[][ 3 ], double dst[][ 3 ] )
   return detA;
 }
 
-//----------------------------------------------------------------------------
-// MyInverseMat4x4
-// ・4x4 の逆行列：解析的
-//----------------------------------------------------------------------------
-
+/**
+ * 行列演算：逆行列
+ * - 4x4 行列の解析解
+ * @param [in] src 計算対象の行列。
+ * @param [out] dst メモリが確保済みでなければ内部で確保。src と同じサイズの確保済みを渡しても OK 。
+ * @return 行列式の値を返す。行列式がゼロの場合はエラー。
+ */
 double
 inline
-MyInverseMat4x4( const double src[][ 4 ], double dst[][ 4 ] )
+MyMatInv4x4( const std::vector< std::vector< double > > &src,
+             std::vector< std::vector< double > > &dst )
 {
+  assert( src.size() == 4 );
+  assert( src[ 0 ].size() == 4 );
+
   double detA =
       src[0][0]*src[1][1]*src[2][2]*src[3][3] + src[0][0]*src[1][2]*src[2][3]*src[3][1] + src[0][0]*src[1][3]*src[2][1]*src[3][2] +
       src[0][1]*src[1][0]*src[2][3]*src[3][2] + src[0][1]*src[1][2]*src[2][0]*src[3][3] + src[0][1]*src[1][3]*src[2][2]*src[3][0] +
@@ -670,6 +752,14 @@ MyInverseMat4x4( const double src[][ 4 ], double dst[][ 4 ] )
       src[0][1]*src[1][0]*src[2][2]*src[3][3] - src[0][1]*src[1][2]*src[2][3]*src[3][0] - src[0][1]*src[1][3]*src[2][0]*src[3][2] -
       src[0][2]*src[1][0]*src[2][3]*src[3][1] - src[0][2]*src[1][1]*src[2][0]*src[3][3] - src[0][2]*src[1][3]*src[2][1]*src[3][0] -
       src[0][3]*src[1][0]*src[2][1]*src[3][2] - src[0][3]*src[1][1]*src[2][2]*src[3][0] - src[0][3]*src[1][2]*src[2][0]*src[3][1];
+
+  assert( detA != 0 );
+
+  if( dst.empty() ) dst.resize( 4, std::vector< double >( 4 ) );
+  else{
+    assert( dst.size() == 4 );
+    assert( dst[ 0 ].size() == 4 );
+  }
 
   dst[0][0] = src[1][1]*src[2][2]*src[3][3]+src[1][2]*src[2][3]*src[3][1]+src[1][3]*src[2][1]*src[3][2]-src[1][1]*src[2][3]*src[3][2]-src[1][2]*src[2][1]*src[3][3]-src[1][3]*src[2][2]*src[3][1];
   dst[0][1] = src[0][1]*src[2][3]*src[3][2]+src[0][2]*src[2][1]*src[3][3]+src[0][3]*src[2][2]*src[3][1]-src[0][1]*src[2][2]*src[3][3]-src[0][2]*src[2][3]*src[3][1]-src[0][3]*src[2][1]*src[3][2];
@@ -697,20 +787,26 @@ MyInverseMat4x4( const double src[][ 4 ], double dst[][ 4 ] )
   return detA;
 }
 
-//----------------------------------------------------------------------------
-// MyFitQuadratic
-// ・二次式 y = a x^2 + b x + c でのフィッティング
-//----------------------------------------------------------------------------
-
+/**
+ * 関数近似
+ * - 二次式 y = a x^2 + b x + c でのフィッティング
+ * - 二次元のデータ列、(x_i, y_i) (i=0,1,2,...)、に対するフィッティング
+ */
 int
-MyFitQuadratic( const double *data_x, const double *data_y, int data_num,
-                double *a, double *b, double *c )
+MyFitQuad( const std::vector< double > &data_x,
+           const std::vector< double > &data_y,
+           double *a, double *b, double *c )
 {
+  using namespace std;
+  
+  int N = data_x.size();
+  assert( N > 0 );
+  assert( N == data_y.size() );
+  
   double n = 0.0, sum_x = 0.0, sum_x2 = 0.0, sum_x3 = 0.0, sum_x4 = 0.0, 
       sum_y = 0.0, sum_xy = 0.0, sum_x2y = 0.0;
   
-  for( int i = 0; i < data_num; i++ ){
-
+  for( int i = 0; i < N; i++ ){
     n += 1;
     sum_x += data_x[ i ];
     sum_x2 += data_x[ i ] * data_x[ i ];
@@ -719,22 +815,20 @@ MyFitQuadratic( const double *data_x, const double *data_y, int data_num,
     sum_y += data_y[ i ];
     sum_xy += data_x[ i ] * data_y[ i ];
     sum_x2y += data_x[ i ] * data_x[ i ] * data_y[ i ];
-
   }// i
   
-  double A[ 3 ][ 3 ];
+  vector< vector< double > > A( 3, vector< double >( 3 ) );
   A[ 0 ][ 0 ] = n;      A[ 0 ][ 1 ] = sum_x;  A[ 0 ][ 2 ] = sum_x2;
   A[ 1 ][ 0 ] = sum_x;  A[ 1 ][ 1 ] = sum_x2; A[ 1 ][ 2 ] = sum_x3;
   A[ 2 ][ 0 ] = sum_x2; A[ 2 ][ 1 ] = sum_x3; A[ 2 ][ 2 ] = sum_x4;
 
-  double B[ 3 ];
+  vector< double > B( 3 );
   B[ 0 ] = sum_y;
   B[ 1 ] = sum_xy;
   B[ 2 ] = sum_x2y;
 
-  double InvA[ 3 ][ 3 ];
-
-  MyInverseMat3x3( A, InvA );
+  vector< vector< double > > InvA;
+  MyMatInv3x3( A, InvA );
 
   *c = InvA[0][0] * B[0] + InvA[0][1] * B[1]  + InvA[0][2] * B[2];
   *b = InvA[1][0] * B[0] + InvA[1][1] * B[1]  + InvA[1][2] * B[2];
@@ -743,20 +837,27 @@ MyFitQuadratic( const double *data_x, const double *data_y, int data_num,
   return 0;
 }
 
-//----------------------------------------------------------------------------
-// MyFitCubic
-// ・三次式 y = a x^3 + b x^2  + c x + d でのフィッティング
-//----------------------------------------------------------------------------
-
+/**
+ * 関数近似
+ * - 三次式 y = a x^3 + b x^2  + c x + d でのフィッティング
+ * - 二次元のデータ列、(x_i, y_i) (i=0,1,2,...)、に対するフィッティング
+ */
 int
-MyFitCubic( const double *data_x, const double *data_y, int data_num,
+MyFitCubic( const std::vector< double > &data_x,
+            const std::vector< double > &data_y, 
             double *a, double *b, double *c, double *d )
 {
+  using namespace std;
+  
+  int N = data_x.size();
+  assert( N > 0 );
+  assert( N == data_y.size() );
+
   double sum_m = 0.0, sum_x = 0.0, sum_x2 = 0.0, sum_x3 = 0.0;
   double sum_x4 = 0.0, sum_x5 = 0.0, sum_x6 = 0.0;
   double sum_y = 0.0, sum_yx = 0.0, sum_yx2 = 0.0, sum_yx3 = 0.0;
   
-  for( int i = 0; i < data_num; i++ ){
+  for( int i = 0; i < N; i++ ){
     sum_m  += 1;
     sum_x  += data_x[i];
     sum_x2 += data_x[i]*data_x[i];
@@ -770,21 +871,20 @@ MyFitCubic( const double *data_x, const double *data_y, int data_num,
     sum_yx3 += data_y[i]*data_x[i]*data_x[i]*data_x[i];
   }
 
-  double A[ 4 ][ 4 ];
+  vector< vector< double > > A( 4, vector< double >( 4 ) );
   A[0][0] = sum_m;  A[0][1] = sum_x;  A[0][2] = sum_x2; A[0][3] = sum_x3;
   A[1][0] = sum_x;  A[1][1] = sum_x2; A[1][2] = sum_x3; A[1][3] = sum_x4;
   A[2][0] = sum_x2; A[2][1] = sum_x3; A[2][2] = sum_x4; A[2][3] = sum_x5;
   A[3][0] = sum_x3; A[3][1] = sum_x4; A[3][2] = sum_x5; A[3][3] = sum_x6;
                
-  double B[ 4 ];
+  vector< double > B( 4 );
   B[0] = sum_y;
   B[1] = sum_yx;
   B[2] = sum_yx2;
   B[3] = sum_yx3;
   
-  double InvA[ 4 ][ 4 ];
-
-  MyInverseMat4x4( A, InvA );
+  vector< vector< double > > InvA;
+  MyMatInv4x4( A, InvA );
 
   *d = InvA[0][0] * B[0] + InvA[0][1] * B[1]  + InvA[0][2] * B[2] + InvA[0][3] * B[3];
   *c = InvA[1][0] * B[0] + InvA[1][1] * B[1]  + InvA[1][2] * B[2] + InvA[1][3] * B[3];
@@ -794,11 +894,10 @@ MyFitCubic( const double *data_x, const double *data_y, int data_num,
   return 0;
 }
 
-//----------------------------------------------------------------------------
-// MyRandGauss
-// ・平均 mu、分散 sg2 の正規分布で分布する乱数を発生する。
-//----------------------------------------------------------------------------
-
+/**
+ * 乱数生成
+ * - 平均 mu、分散 sg2 の正規分布で分布する乱数を発生する。 
+ */
 double MyRandGauss( double mu, double sg2 ){
   using namespace std;
   // Box-Muller's Method
@@ -809,12 +908,11 @@ double MyRandGauss( double mu, double sg2 ){
   return Z1;
 }
 
-//----------------------------------------------------------------------------
-// MyRandPoisson
-// ・ポアソン分布に従う乱数を発生する。
-// ・ただし、lambda が大きいと exp( -lambda ) が 0 になり、返ってこない。
-//----------------------------------------------------------------------------
-
+/**
+ * 乱数生成
+ * - ポアソン分布に従う乱数を発生する。
+ * - ただし、lambda が大きいと exp( -lambda ) が 0 になり、返ってこないので注意。
+ */
 int MyRandPoisson( double lambda ){
   using namespace std;
   assert( lambda > 0 );
@@ -828,10 +926,9 @@ int MyRandPoisson( double lambda ){
   return k;
 }
 
-//----------------------------------------------------------------------------
-// vector operators
-//----------------------------------------------------------------------------
-
+/**
+ * ベクトル演算：足し算
+ */
 template < typename T >
 inline
 std::vector< T > operator + ( const std::vector< T > &a,
@@ -842,6 +939,9 @@ std::vector< T > operator + ( const std::vector< T > &a,
   return c;
 }
 
+/**
+ * ベクトル演算：引き算
+ */
 template < typename T >
 inline
 std::vector< T > operator - ( const std::vector< T > &a,
@@ -852,6 +952,9 @@ std::vector< T > operator - ( const std::vector< T > &a,
   return c;
 }
 
+/**
+ * ベクトル演算：スカラー倍
+ */
 template < typename T >
 inline
 std::vector< T > operator * ( const T k,
@@ -861,6 +964,9 @@ std::vector< T > operator * ( const T k,
   return c;
 }
 
+/**
+ * ベクトル演算：スカラー割り算
+ */
 template < typename T >
 inline
 std::vector< T > operator / ( const std::vector< T > &a,
@@ -871,6 +977,9 @@ std::vector< T > operator / ( const std::vector< T > &a,
   return c;
 }
 
+/**
+ * ベクトルの表示
+ */
 template < typename T >
 inline
 std::ostream & operator << ( std::ostream &os,
@@ -879,15 +988,11 @@ std::ostream & operator << ( std::ostream &os,
   return os;
 }
 
-//----------------------------------------------------------------------------
-// MyVecNorm
-// ・ベクトルのノルムを返す
-//----------------------------------------------------------------------------
-
+/**
+ * ベクトル演算：ベクトルのノルムを返す
+ */
 template < typename T >
-inline
-T
-MyVecNorm( const std::vector< T > &a ){
+inline T MyVecNorm( const std::vector< T > &a ){
   T sum = 0.0;
   for( int i = 0; i < a.size(); i++ ){
     sum += a[ i ] * a[ i ];
@@ -895,21 +1000,18 @@ MyVecNorm( const std::vector< T > &a ){
   return sqrt( sum );
 }
 
-//----------------------------------------------------------------------------
-// MyVecGrad
-// ・任意の関数の勾配（ナブラ）を返す。
-// ・vector< T > fx( const vector< T > &x ) な関数
-// ・数値微分（中心差分）
-//----------------------------------------------------------------------------
-
+/**
+ * 多変数関数の勾配（ナブラ）を返す
+ * - vector< T > fx( const vector< T > &x ) な関数
+ * - 数値微分（中心差分）
+ * @param fx 多変数関数へのポインタ
+ * @param x この位置での勾配を計算
+ * @param [out] 出力値
+ * @param h 数値微分に用いる微小変化値。デフォルトは、1E-6
+ */
 template < typename T >
-inline
-int
-MyVecGrad( T (*fx)( const std::vector< T > & ), // 関数ポインタ
-           const std::vector< T > &x, // この位置での勾配を計算
-           std::vector< T > &out, // 出力値
-           T h = 1E-06 // 数値微分の際の微小変化値
-           ){
+inline int MyVecGrad( T (*fx)( const std::vector< T > & ), const std::vector< T > &x,
+           std::vector< T > &out, T h = 1E-06 ){
   using namespace std;
 
   // h が 0 だとゼロ割になってしまうのでダメ
@@ -938,30 +1040,28 @@ MyVecGrad( T (*fx)( const std::vector< T > & ), // 関数ポインタ
   return 0;
 }
 
-// 勾配ベクトルを返り値として返すパターン
+/**
+ * 勾配ベクトルを返り値として返すパターン
+ */
 template < typename T >
-inline
-std::vector< T > MyVecGrad( T (*fx)( const std::vector< T > & ),
-                            const std::vector< T > &x, T h = 1E-06 ){
+inline std::vector< T > MyVecGrad( T (*fx)( const std::vector< T > & ),
+                                   const std::vector< T > &x, T h = 1E-06 ){
   std::vector< T > out;
   MyVecGrad( fx, x, out, h );
   return out;
 }
 
-//----------------------------------------------------------------------------
-// MyCalcGrad
-// ・１変数関数の数値微分を計算
-// ・T fx( T x ) な関数
-// ・中心差分
-//----------------------------------------------------------------------------
+/**
+ * １変数関数の数値微分を計算
+ * - T fx( T x ) な関数
+ * - 中心差分
+ * @param fx 関数へのポインタ
+ * @param x この値での微分値を計算
+ * @param[out] out 出力値
+ * @param h 微分計算時に用いる微小変化量。デフォルトは、1E-6
+ */
 template < typename T >
-inline
-int
-MyCalcGrad( T (*fx)( T ), // 微分計算対象の関数ポインタ
-            T x, // この値での微分値を計算
-            T *out, // 出力値
-            T h = 1E-06 // 微分の微小変化量
-            ){
+inline int MyCalcGrad( T (*fx)( T ), T x, T *out, T h = 1E-06 ){
 
   // h が 0 だとゼロ割になってしまうのでダメ
   assert( h != 0 );
@@ -981,20 +1081,26 @@ T MyCalcGrad( T (*fx)( T ), T x, T h = 1E-06 ){
   return out;
 }
 
-//----------------------------------------------------------------------------
-// MyGoldenSection
-// ・１変数の最小値検索
-// ・黄金分割法
-// ・a < x < b の範囲における f(x) の値を最小にする x の値を返す。
-//----------------------------------------------------------------------------
+/**
+ * １変数の最小値検索
+ * - 黄金分割法
+ * - a < x < b の範囲における f(x) の値を最小にする x の値を返す。
+ * @param fx 評価関数
+ * @param a x の検索範囲（の初期値）(a,b)
+ * @param b x の検索範囲（の初期値）(a,b)
+ * @param[out] out 出力値。評価関数の値を最小にする x の値
+ * @param thres 終了条件： |b-a| がこの値以下になったら計算終了。 
+ * @param max_itr_num 終了条件： 繰り返し計算回数の最大値。
+ * @param dout デバッグ情報の表示
+ */
 int
-MyGoldenSection( double (*fx)( double ), // 評価関数
-                 double a, // x の検索範囲（の初期値）
-                 double b, // x の検索範囲（の初期値）
-                 double *out, // 出力値。評価関数の値を最小にする x の値
-                 double thres = 1E-06, // 終了条件： |b-a| がこの値以下になったら計算終了。 
-                 int max_itr_num = 100, // 終了条件： 繰り返し計算回数の最大値。
-                 std::ostream *dout = 0 // デバッグ出力
+MyGoldenSection( double (*fx)( double ),
+                 double a,
+                 double b, 
+                 double *out,
+                 double thres = 1E-06,
+                 int max_itr_num = 100,
+                 std::ostream *dout = 0
                  ){
   using namespace std;
 
@@ -1042,19 +1148,23 @@ MyGoldenSection( double (*fx)( double ), // 評価関数
   return 0;
 }
 
-//----------------------------------------------------------------------------
-// MyGradientBasedSearch
-// ・１変数の最小値検索
-// ・勾配利用。勾配は数値微分。
-//----------------------------------------------------------------------------
-
+/**
+ * １変数の最小値検索
+ * - 勾配利用。勾配は数値微分。
+ * @param fx 評価関数
+ * @param x_init 初期値
+ * @param [out] out 出力値。評価関数の値を最小にする x の値
+ * @param thres 終了条件： 勾配の絶対値がこの値以下になったら計算終了。 
+ * @param max_itr_num 終了条件： 繰り返し計算回数の最大値。
+ * @param dout デバッグ出力
+ */
 int
-MyGradientBasedSearch( double (*fx)( double ), // 評価関数
-                       double x_init, // 初期値
-                       double *out, // 出力値。評価関数の値を最小にする x の値
-                       double thres = 1E-06, // 終了条件： 勾配の絶対値がこの値以下になったら計算終了。 
-                       int max_itr_num = 100, // 終了条件： 繰り返し計算回数の最大値。
-                       std::ostream *dout = 0 // デバッグ出力
+MyGradientBasedSearch( double (*fx)( double ),
+                       double x_init,
+                       double *out,
+                       double thres = 1E-06,
+                       int max_itr_num = 100,
+                       std::ostream *dout = 0 
                        ){
   using namespace std;
   using namespace my;
@@ -1183,19 +1293,25 @@ MyGradientBasedSearch( double (*fx)( double ), // 評価関数
   return 0;
 }
 
-//----------------------------------------------------------------------------
-// MyDownhillSimplex
-// ・関数の最小値を求める関数
-// ・Downhill Simplex 法 (Nelder-Mead)
-//----------------------------------------------------------------------------
-
+/**
+ * 多変数関数の最小値検索
+ * - Downhill Simplex 法 (Nelder-Mead)
+ * - 関数 double fx( const vector< double > &x ) の値を最小にする入力 x を求める
+ * - １変数関数も可。
+ * @param fx 評価関数
+ * @param x_init 初期値
+ * @param [out] out 出力値。評価関数の値を最小にする x の値
+ * @param thres 終了条件： シンプレックスサイズがこの値以下。 
+ * @param max_itr_num 終了条件： 繰り返し計算回数の最大値。
+ * @param dout デバッグ出力
+ */
 int
-MyDownhillSimplex( double (*fx)( const std::vector< double > & ), // 評価関数
-                   std::vector< double > x_init, // 初期値
-                   std::vector< double > &out, // 出力値。評価関数の値を最小にする x 。
-                   double thres = 1E-06, // 終了条件： シンプレックスサイズがこの値以下。 
-                   int max_itr_num = 100, // 終了条件： 繰り返し計算回数の最大値。
-                   std::ostream *dout = 0 // デバッグ出力
+MyDownhillSimplex( double (*fx)( const std::vector< double > & ),
+                   std::vector< double > x_init,
+                   std::vector< double > &out,
+                   double thres = 1E-06,
+                   int max_itr_num = 100,
+                   std::ostream *dout = 0
                    ){
   using namespace std;
   
@@ -1479,40 +1595,67 @@ MyDownhillSimplex( double (*fx)( const std::vector< double > & ), // 評価関�
   return 0;
 }
 
-//----------------------------------------------------------------------------
-// MyLineSearch
-// ・fx( x + t * dx ) を最小にする t の値を返す
-// ・x, dx は、ベクトル
-//----------------------------------------------------------------------------
-
-// 内部で使う１変数の最小値検索アルゴリズムの種類
+/**
+ * 関数 MyLineSearch() の内部で使う１変数の最小値検索アルゴリズムの種類
+ */
 typedef enum {
   GoldenSection = 0,
   GradientBased,
   DownhillSimplex
 } MyLineSearch_MethodType;
 
-// 内部で使う関数
+/**
+ * 関数 MyLineSearch() の内部で使うグローバル変数
+ */
 const std::vector< double > * g_MyLineSearch_x;
+
+/**
+ * 関数 MyLineSearch() の内部で使うグローバル変数
+ */
 const std::vector< double > * g_MyLineSearch_dx;
+
+/**
+ * 関数 MyLineSearch() の内部で使うグローバル変数
+ */
 double (*g_MyLineSearch_fx)( const std::vector< double > & );
+
+/**
+ * 関数 MyLineSearch() の内部で使う関数
+ */
 double MyLineSearch_Ft( double t ){
   return g_MyLineSearch_fx( (*g_MyLineSearch_x) + t * (*g_MyLineSearch_dx) );
 }
+
+/**
+ * 関数 MyLineSearch() の内部で使う関数
+ */
 double MyLineSearch_Ft2( const std::vector< double > &t ){
   assert( t.size() > 0 );
   return g_MyLineSearch_fx( (*g_MyLineSearch_x) + t[0] * (*g_MyLineSearch_dx) );
 }
 
+/**
+ * 直線検索
+ * - fx( x + t * dx ) を最小にする t の値を返す
+ * - x, dx は、ベクトル
+ * @param fx 評価関数
+ * @param x 初期位置
+ * @param dx 検索方向
+ * @param[out] out 出力値
+ * @param type 内部で使う１変数関数の最小値探索アルゴリズム
+ * @param thres 検索終了のしきい値
+ * @param max_itr_num 繰り返し計算の最大回数
+ * @param dout デバッグ用出力
+ */
 int
-MyLineSearch( double (*fx)( const std::vector< double > &), // 評価関数
-              const std::vector< double > &x, // 初期位置
-              const std::vector< double > &dx, // 検索方向
-              double *out, // 出力値
-              MyLineSearch_MethodType type = GoldenSection, // 探索アルゴリズム
-              double thres = 1E-06, // 検索終了のしきい値
-              int max_itr_num = 100, // 繰り返し計算の最大回数
-              std::ostream *dout = 0 // デバッグ用出力
+MyLineSearch( double (*fx)( const std::vector< double > &),
+              const std::vector< double > &x,
+              const std::vector< double > &dx,
+              double *out,
+              MyLineSearch_MethodType type = GoldenSection,
+              double thres = 1E-06,
+              int max_itr_num = 100,
+              std::ostream *dout = 0
               ){
   using namespace std;
 
@@ -1603,19 +1746,23 @@ MyLineSearch( double (*fx)( const std::vector< double > &), // 評価関数
   return 0;
 }
 
-//----------------------------------------------------------------------------
-// MySteepestDescent
-// ・最急降下法
-// ・関数 double f( const vector< double > &x ) の値を最小にする入力 x を求める
-//----------------------------------------------------------------------------
-
+/**
+ * 最急降下法
+ * - 関数 double f( const vector< double > &x ) の値を最小にする入力 x を求める
+ * @param fx 評価関数
+ * @param[in,out] x 出力値。最初は初期値を入れておく。
+ * @param type 内部で使う１変数関数の最小値探索アルゴリズム
+ * @param thres 検索終了のしきい値
+ * @param max_itr_num 繰り返し計算の最大回数
+ * @param dout デバッグ用出力
+ */
 int
-MySteepestDescent( double (*fx)( const std::vector< double > &), // 評価関数
-                   std::vector< double > &x, // 出力値。最初は初期値を入れておく。
-                   MyLineSearch_MethodType type = GoldenSection, // 内部で使う直線探索のアルゴリズム
-                   double thres = 1E-06, // 検索終了のしきい値
-                   int max_itr_num = 100, // 繰り返し計算の最大回数
-                   std::ostream *dout = 0 // デバッグ用出力
+MySteepestDescent( double (*fx)( const std::vector< double > &),
+                   std::vector< double > &x,
+                   MyLineSearch_MethodType type = GoldenSection,
+                   double thres = 1E-06,
+                   int max_itr_num = 100,
+                   std::ostream *dout = 0
                    ){
   using namespace std;
 
@@ -1653,6 +1800,264 @@ MySteepestDescent( double (*fx)( const std::vector< double > &), // 評価関数
     
   } // while
 
+  return 0;
+}
+
+/**
+ * 行列演算：足し算
+ */
+
+template < typename T >
+inline
+std::vector< std::vector< T > >
+operator + ( const std::vector< std::vector< T > > &A,
+             const std::vector< std::vector< T > > &B ){
+  assert( A.size() > 0 );
+  assert( A.size() == B.size() );
+  assert( A[ 0 ].size() == B[ 0 ].size() );
+  using namespace std;
+  int M = A.size();
+  int N = A[ 0 ].size();
+  vector< vector< T > > C( M, vector< T >( N ) );
+  for( int i = 0; i < M; i++ ){
+    for( int j = 0; j < N; j++ ){
+      C[ i ][ j ] = A[ i ][ j ] + B[ i ][ j ];
+    }
+  }
+  return C;
+}
+
+/**
+ * 行列演算：引き算
+ */
+
+template < typename T >
+inline
+std::vector< std::vector< T > >
+operator - ( const std::vector< std::vector< T > > &A,
+             const std::vector< std::vector< T > > &B ){
+  using namespace std;
+  int M = A.size();
+  int N = A[ 0 ].size();
+  assert( M > 0 );
+  assert( M == B.size() );
+  assert( N == B[ 0 ].size() );
+  vector< vector< T > > C( M, vector< T >( N ) );
+  for( int i = 0; i < M; i++ ){
+    for( int j = 0; j < N; j++ ){
+      C[ i ][ j ] = A[ i ][ j ] - B[ i ][ j ];
+    }
+  }
+  return C;
+}
+
+/**
+ * 行列演算：掛け算
+ */
+template < typename T >
+inline
+std::vector< std::vector< T > >
+operator * ( const std::vector< std::vector< T > > &A,
+             const std::vector< std::vector< T > > &B ){
+  using namespace std;
+  int M = A.size();
+  assert( M > 0 );
+  int N = A[ 0 ].size();
+  assert( N == B.size() );
+  assert( N > 0 );
+  int L = B[ 0 ].size();
+  assert( L > 0 );
+  // M x N, N x L
+  vector< vector< T > > C( M, vector< T >( L ) );
+  for( int i = 0; i < M; i++ ){
+    for( int j = 0; j < L; j++ ){
+      C[ i ][ j ] = 0;
+      for( int k = 0; k < N; k++ ){
+        C[ i ][ j ] += A[ i ][ k ] * B[ k ][ j ];
+      }
+    }
+  }
+  return C;
+}
+
+/**
+ * 行列演算：スカラー倍
+ */
+
+template < typename T >
+inline
+std::vector< std::vector< T > >
+operator * ( T k,
+             const std::vector< std::vector< T > > &A ){
+  using namespace std;
+  int M = A.size();
+  assert( M > 0 );
+  int N = A[ 0 ].size();
+  assert( N > 0 );
+  vector< vector< T > > C( M, vector< T >( N ) );
+  for( int i = 0; i < M; i++ ){
+    for( int j = 0; j < N; j++ ){
+      C[ i ][ j ] = k * A[ i ][ j ];
+    }
+  }
+  return C;
+}
+
+/** 
+ * 行列演算：転置
+ */
+
+template < typename T >
+inline
+std::vector< std::vector< T > >
+MyMatTrans( const std::vector< std::vector< T > > &A ){
+  using namespace std;
+  int M = A.size();
+  assert( M > 0 );
+  int N = A[ 0 ].size();
+  assert( N > 0 );
+  vector< vector< double > > C( M, vector< T >( N ) );
+  for( int i = 0; i < N; i++ ){
+    for( int j = 0; j < M; j++ ){
+      C[ i ][ j ] = A[ j ][ i ];
+    }
+  }
+  return C;
+}
+
+/** 
+ * 行列の表示
+ */
+
+template < typename T >
+inline
+std::ostream & operator << ( std::ostream &os,
+                             const std::vector< std::vector< T > > &A)
+{
+  int M = A.size();
+  int N = A[ 0 ].size();
+  for( int i = 0; i < M; i++ ){
+    for( int j = 0; j < N; j++ ){
+      os << A[ i ][ j ] << "\t";
+    }
+    os << std::endl;
+  }
+  return os;
+}
+
+/**
+ * ベクトル、行列演算： 行列 * ベクトル => ベクトル
+ * - M x N * N x 1 => M x 1
+ */
+template < typename T >
+inline
+std::vector< T >
+operator * ( const std::vector< std::vector< T > > &A,
+             const std::vector< T > &x
+              ){
+  using namespace std;
+  // M x N, N x 1
+  int M = A.size();
+  assert( M > 0 );
+  int N = A[ 0 ].size();
+  assert( N == x.size() );
+  assert( N > 0 );
+  vector< T > b( N, 0 );
+  for( int i = 0; i < M; i++ ){
+    for( int j = 0; j < N; j++ ){
+      b[ i ] += A[ i ][ j ] * x[ j ];
+    }
+  }
+  return b;
+}
+
+/** 
+ * ベクトル、行列演算：ベクトルの転置 => 行列
+ * - N x 1 ベクトル => 1 x N 行列
+ */
+template < typename T >
+inline
+std::vector< std::vector< T > >
+MyVecTrans( const std::vector< T > &x ){
+  using namespace std;
+  int N = x.size();
+  assert( N > 0 );
+  vector< vector< double > > A( 1, vector< T >( N ) );
+  for( int i = 0; i < N; i++ ){
+    A[ 0 ][ i ] = x[ i ];
+  }
+  return A;
+}
+
+/** 
+ * 行列の LU 分解
+ * - 枢軸選択（ピボッティング）は実装していない。なので計算に失敗する場合もあり。
+ * @param[in,out] A 対象となる行列。LU 分解した結果で上書きされる。
+ * @return 0:成功、0以外:失敗
+ */
+int
+MyLUDecomp( std::vector< std::vector< double > > &A ){
+  int N = A.size();
+  assert( N > 0 );
+  assert( A[ 0 ].size() == N );
+  using namespace std;
+  for( int i = 0; i < N - 1; i++ ){
+    if( A[ i ][ i ] == 0 ) return -1; 
+    for( int j = i + 1; j < N; j++ ){
+      A[ j ][ i ] = A[ j ][ i ] / A[ i ][ i ];
+      for( int k = i + 1; k < N; k++ ){
+        A[ j ][ k ] = A[ j ][ k ] - A[ j ][ i ] * A[ i ][ k ];
+      }
+    }
+  }
+  return 0;
+}
+
+/**
+ * LU 分解による連立一次方程式の計算
+ * @param[in,out] A 正方行列。関数の呼び出し後は、LU 分解された結果が入る。
+ * @param[in,out] x 解。初期値は不要。メモリは確保済みでも確保済みでなくても可。
+ * @param[in,out] b 定数ベクトル。内部で変数として利用されるため、呼び出し後、中身は変更されている。
+ * @return 0:成功、0以外：失敗
+ */
+int
+MyLUSolve( std::vector< std::vector< double > > &A,
+           std::vector< double > &x,
+           std::vector< double > &b
+           ){
+  using namespace std;
+
+  // 次元
+  int N = A.size();
+
+  // 入力チェック
+  assert( N > 0 );
+  assert( A[ 0 ].size() == N );
+  assert( b.size() == N );
+  if( x.empty() ) x.resize( N );
+  else assert( x.size() == N );
+
+  // LU 分解をする
+  assert( ! MyLUDecomp( A ) );
+
+  // 前進代入
+  for( int i = 0; i < N; i++ ){
+    b[ i ] = b[ i ];
+    for( int j = 0; j < i; j++ ){
+      b[ i ] -= A[ i ][ j ] * b[ j ];
+    }
+  }
+
+  // 後退代入
+  for( int i = N - 1; i >= 0; i-- ){
+    x[ i ] = b[ i ];
+    for( int j = i + 1; j < N; j++ ){
+      x[ i ] -= A[ i ][ j ] * x[ j ];
+    }
+    assert( A[ i ][ i ] != 0 );
+    x[ i ] /= A[ i ][ i ];
+  }
+  
   return 0;
 }
 
