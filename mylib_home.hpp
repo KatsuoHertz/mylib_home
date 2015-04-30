@@ -16,7 +16,7 @@ namespace my
 {
 
 // バージョン
-const char *VERSION = "2015.4.26";
+const char *VERSION = "2015.4.30";
   
 //----------------------------------------------------------------------------
 // MyPoint2T
@@ -32,6 +32,7 @@ struct MyPoint2T {
 };
 
 template < typename T >
+inline
 std::ostream & operator << ( std::ostream &os, const MyPoint2T<T> &p )
 {
   os << p.x << "\t" << p.y;
@@ -85,6 +86,7 @@ struct MyColor3T {
 };
 
 template < typename T >
+inline
 std::ostream & operator << ( std::ostream &os, const MyColor3T<T> &cl )
 {
   os << cl.r << "\t" << cl.g << "\t" << cl.b;
@@ -111,6 +113,7 @@ typedef MyCmpColor3<double> MyCmpColor3d;
 //----------------------------------------------------------------------------
 
 template < class T >
+inline
 T
 MyAbs( T a ){
   return (a > 0) ? a : -a;
@@ -121,6 +124,7 @@ MyAbs( T a ){
 //----------------------------------------------------------------------------
 
 template < class T >
+inline
 T
 MyAbsDiff( T a, T b ){
   return (a > b) ? a - b : b - a;
@@ -131,12 +135,14 @@ MyAbsDiff( T a, T b ){
 //----------------------------------------------------------------------------
 
 template < class T >
+inline
 T
 MyMin( T a, T b ){
   return (a < b) ? a : b;
 }
 
 template < class T >
+inline
 T
 MyMin( T a, T b, T c ){
   if( a < b && a < c ) return a;
@@ -148,16 +154,31 @@ MyMin( T a, T b, T c ){
 //----------------------------------------------------------------------------
 
 template < class T >
+inline
 T
 MyMax( T a, T b ){
   return (a > b) ? a : b;
 }
 
 template < class T >
+inline
 T
 MyMax( T a, T b, T c ){
   if( a > b && a > c ) return a;
   else return MyMax< T >( b, c );
+}
+
+//----------------------------------------------------------------------------
+// MySgn
+// ・符号を返す
+// ・引数が正の場合は、１
+// ・引数がゼロの場合は、０
+// ・引数が負の場合は、−１
+//----------------------------------------------------------------------------
+template < typename T >
+inline
+T MySgn( T x ){
+  return x == 0 ? 0 : ( x > 0 ? 1 : -1 );
 }
 
 //----------------------------------------------------------------------------
@@ -180,6 +201,7 @@ MySplit( const std::string &str
 //----------------------------------------------------------------------------
 
 bool 
+inline
 MyEndsWith( std::string const& str, 
             std::string const& ext // 拡張子など
             ){
@@ -187,6 +209,7 @@ MyEndsWith( std::string const& str,
 }
   
 bool 
+inline
 MyEndsWith( const char *str, 
             const char *ext // 拡張子など
             ){
@@ -199,12 +222,14 @@ MyEndsWith( const char *str,
 //----------------------------------------------------------------------------
 
 bool
+inline
 MyBeginWith( const std::string &str,
              const std::string &start ){
   return str.find( start ) == 0;
 }
 
 bool
+inline
 MyBeginsWith( const char * str,
              const char * start ){
   return std::string( str ).find( std::string( start ) ) == 0;
@@ -231,12 +256,14 @@ MyFindOption( int argc,
 //----------------------------------------------------------------------------
 
 std::string 
+inline
 MyGetFileName( const std::string &filepath ){
   size_t idx = filepath.find_last_of( '/' );
   if (idx == std::string::npos) return filepath;
   else return filepath.substr( idx + 1, filepath.size() );
 }
 std::string
+inline
 MyGetFileName( const char *filepath ){
   return MyGetFileName( std::string( filepath ) );
 }
@@ -247,12 +274,14 @@ MyGetFileName( const char *filepath ){
 //----------------------------------------------------------------------------
 
 std::string
+inline
 MyGetFileNameBase( const std::string &filepath ){
   size_t idx = filepath.find_last_of( '.' );
   if (idx == std::string::npos) return filepath;
   else return filepath.substr( 0, idx );
 }
 std::string
+inline
 MyGetFileNameBase( const char *filepath ){
   return MyGetFileNameBase( std::string( filepath ) );
 }
@@ -274,7 +303,7 @@ MyReadText( const char *filepath,
   while (fin.good()) {
     string line;
     getline( fin, line );
-    vector<string> la = my::MySplit( line );
+    vector<string> la = MySplit( line );
     if( ( col_num == 0 && la.size() > 0 ) ||
         ( col_num != 0 && la.size() == col_num ) ){
       vector< T > tmp;
@@ -384,6 +413,7 @@ MyGetMostFrequentElement( const std::vector< T > &data,
 //----------------------------------------------------------------------------
 
 unsigned short
+inline
 MyGetPixel( const IplImage *img_in,
             int x,
             int y,
@@ -405,6 +435,7 @@ MyGetPixel( const IplImage *img_in,
 //----------------------------------------------------------------------------
 
 void
+inline
 MySetPixel( IplImage *img_in,
             int x,
             int y,
@@ -422,6 +453,7 @@ MySetPixel( IplImage *img_in,
 }
 
 void
+inline
 MySetPixel( IplImage *img_in,
             int x,
             int y,
@@ -442,6 +474,7 @@ MySetPixel( IplImage *img_in,
 }
 
 void
+inline
 MySetPixel( IplImage *img_in,
             int x,
             int y,
@@ -589,6 +622,7 @@ int MyAreaExpansion( const IplImage *img_in, int x, int y, int thres,  IplImage 
 //----------------------------------------------------------------------------
 
 double
+inline
 MyInverseMat3x3( const double src[][ 3 ], double dst[][ 3 ] )
 {
   double detA =
@@ -624,6 +658,7 @@ MyInverseMat3x3( const double src[][ 3 ], double dst[][ 3 ] )
 //----------------------------------------------------------------------------
 
 double
+inline
 MyInverseMat4x4( const double src[][ 4 ], double dst[][ 4 ] )
 {
   double detA =
@@ -791,6 +826,834 @@ int MyRandPoisson( double lambda ){
     k = k + 1;
   }
   return k;
+}
+
+//----------------------------------------------------------------------------
+// vector operators
+//----------------------------------------------------------------------------
+
+template < typename T >
+inline
+std::vector< T > operator + ( const std::vector< T > &a,
+                              const std::vector< T > &b ){
+  assert( a.size() == b.size() );
+  std::vector< T > c( a.size() );
+  for( int i = 0; i < a.size(); i++ ) c[ i ] = a[ i ] + b[ i ];
+  return c;
+}
+
+template < typename T >
+inline
+std::vector< T > operator - ( const std::vector< T > &a,
+                              const std::vector< T > &b ){
+  assert( a.size() == b.size() );
+  std::vector< T > c( a.size() );
+  for( int i = 0; i < a.size(); i++ ) c[ i ] = a[ i ] - b[ i ];
+  return c;
+}
+
+template < typename T >
+inline
+std::vector< T > operator * ( const T k,
+                              const std::vector< T > &a ){
+  std::vector< T > c( a.size() );
+  for( int i = 0; i < a.size(); i++ ) c[ i ] = k * a[ i ];
+  return c;
+}
+
+template < typename T >
+inline
+std::vector< T > operator / ( const std::vector< T > &a,
+                              const T k ){
+  assert( k != 0 );
+  std::vector< T > c( a.size() );
+  for( int i = 0; i < a.size(); i++ ) c[ i ] = a[ i ] / k;
+  return c;
+}
+
+template < typename T >
+inline
+std::ostream & operator << ( std::ostream &os,
+                             const std::vector< T > &a ){
+  for( int i = 0; i < a.size(); i++ ) os << a[ i ] << "\t";
+  return os;
+}
+
+//----------------------------------------------------------------------------
+// MyVecNorm
+// ・ベクトルのノルムを返す
+//----------------------------------------------------------------------------
+
+template < typename T >
+inline
+T
+MyVecNorm( const std::vector< T > &a ){
+  T sum = 0.0;
+  for( int i = 0; i < a.size(); i++ ){
+    sum += a[ i ] * a[ i ];
+  }
+  return sqrt( sum );
+}
+
+//----------------------------------------------------------------------------
+// MyVecGrad
+// ・任意の関数の勾配（ナブラ）を返す。
+// ・vector< T > fx( const vector< T > &x ) な関数
+// ・数値微分（中心差分）
+//----------------------------------------------------------------------------
+
+template < typename T >
+inline
+int
+MyVecGrad( T (*fx)( const std::vector< T > & ), // 関数ポインタ
+           const std::vector< T > &x, // この位置での勾配を計算
+           std::vector< T > &out, // 出力値
+           T h = 1E-06 // 数値微分の際の微小変化値
+           ){
+  using namespace std;
+
+  // h が 0 だとゼロ割になってしまうのでダメ
+  assert( h != 0 );
+
+  // ベクトルの次元数
+  int n = x.size();
+
+  // もし出力ベクトルがからだったらリサイズ
+  if( out.empty() ) out.resize( n );
+
+  // そうでなければ、ベクトルのサイズはあらかじめ確保されているものとする
+  else assert( out.size() == n );
+
+  // 各成分ごとに
+  for( int i = 0; i < n; i++ ){
+
+    // その成分だけを少し動かすベクトル
+    vector< T > dx( n, 0 );
+    dx[ i ] = h;
+
+    // 両隣の関数値の変化から微分値を計算（中心差分方式）   
+    out[ i ] = ( fx( x + dx ) - fx( x - dx ) ) / ( 2 * h );
+  }
+  
+  return 0;
+}
+
+// 勾配ベクトルを返り値として返すパターン
+template < typename T >
+inline
+std::vector< T > MyVecGrad( T (*fx)( const std::vector< T > & ),
+                            const std::vector< T > &x, T h = 1E-06 ){
+  std::vector< T > out;
+  MyVecGrad( fx, x, out, h );
+  return out;
+}
+
+//----------------------------------------------------------------------------
+// MyCalcGrad
+// ・１変数関数の数値微分を計算
+// ・T fx( T x ) な関数
+// ・中心差分
+//----------------------------------------------------------------------------
+template < typename T >
+inline
+int
+MyCalcGrad( T (*fx)( T ), // 微分計算対象の関数ポインタ
+            T x, // この値での微分値を計算
+            T *out, // 出力値
+            T h = 1E-06 // 微分の微小変化量
+            ){
+
+  // h が 0 だとゼロ割になってしまうのでダメ
+  assert( h != 0 );
+
+  // 両隣の関数値の変化から微分値を計算（中心差分方式）   
+  *out = ( fx( x + h ) - fx( x - h ) ) / ( 2 * h );
+
+  return 0;
+}
+
+// 値を返す版
+template < typename T >
+inline
+T MyCalcGrad( T (*fx)( T ), T x, T h = 1E-06 ){
+  T out;
+  MyCalcGrad( fx, x, &out, h );
+  return out;
+}
+
+//----------------------------------------------------------------------------
+// MyGoldenSection
+// ・１変数の最小値検索
+// ・黄金分割法
+// ・a < x < b の範囲における f(x) の値を最小にする x の値を返す。
+//----------------------------------------------------------------------------
+int
+MyGoldenSection( double (*fx)( double ), // 評価関数
+                 double a, // x の検索範囲（の初期値）
+                 double b, // x の検索範囲（の初期値）
+                 double *out, // 出力値。評価関数の値を最小にする x の値
+                 double thres = 1E-06, // 終了条件： |b-a| がこの値以下になったら計算終了。 
+                 int max_itr_num = 100, // 終了条件： 繰り返し計算回数の最大値。
+                 std::ostream *dout = 0 // デバッグ出力
+                 ){
+  using namespace std;
+
+  // 内分比（黄金比）
+  const double tau = ( sqrt( 5 ) - 1 ) / 2.0;
+
+  // 初期範囲
+  double t0 = a;
+  double t3 = b;
+
+  if( dout ){
+    *dout << "--- MyGoldenSection() ---" << endl;
+    *dout << "a:\t" << a << endl;
+    *dout << "b:\t" << b << endl;
+  }
+
+  // 探索処理
+  for( int i = 0; i < max_itr_num; i++ ){
+
+    // [t0, t3] をそれぞれ ( tau / ( tau + 1 ) ), ( 1 / ( tau + 1 ) ) に内分する点を求める
+    double t1 = t0 + ( t3 - t0 ) * tau / ( 1 + tau );
+    double t2 = t0 + ( t3 - t0 ) * 1 / ( 1 + tau );
+
+    // それぞれの位置での関数値を計算
+    double f1 = fx( t1 );
+    double f2 = fx( t2 );
+    
+    if( dout ){
+      *dout << "[" << i << "]\t";
+      *dout << "f(" << t1 << ") = " << f1 << ",\t";
+      *dout << "f(" << t2 << ") = " << f2 << endl;
+    }
+
+    // 関数値の大小に応じて、探索範囲を狭めていく
+    if( f1 > f2 ) t0 = t1;
+    else t3 = t2;
+
+    // 探索範囲が閾値以下になったら終了
+    if( abs( t3 - t0 ) < thres ) break;
+  }
+
+  // 探索範囲の中点を出力する
+  *out = (t3 + t0) / 2.0;
+  
+  return 0;
+}
+
+//----------------------------------------------------------------------------
+// MyGradientBasedSearch
+// ・１変数の最小値検索
+// ・勾配利用。勾配は数値微分。
+//----------------------------------------------------------------------------
+
+int
+MyGradientBasedSearch( double (*fx)( double ), // 評価関数
+                       double x_init, // 初期値
+                       double *out, // 出力値。評価関数の値を最小にする x の値
+                       double thres = 1E-06, // 終了条件： 勾配の絶対値がこの値以下になったら計算終了。 
+                       int max_itr_num = 100, // 終了条件： 繰り返し計算回数の最大値。
+                       std::ostream *dout = 0 // デバッグ出力
+                       ){
+  using namespace std;
+  using namespace my;
+
+  // 固定パラメータ
+  const double INIT_STEP_PCT = 1; // 最初の移動量。初期値に対する % で指定。
+  const double INIT_STEP_WHEN_ZERO = 0.00025; // 初期値がゼロだった場合の最初の移動量。
+  const double MAX_ITR_NUM2 = 25; // 内部の while 文での最大繰り返し数。
+
+  // 初期値のセット
+  double x = x_init;
+  double h = x_init * INIT_STEP_PCT / 100.0;
+  if( h == 0 ) h = INIT_STEP_WHEN_ZERO;
+
+  // 諸変数
+  int itr_cnt = 0;
+  double gx_x, X, Xd, fx_X, fx_Xd;
+
+  // 初期位置での勾配
+  gx_x = MyCalcGrad( fx, x );
+
+  if( dout ){
+    *dout << "--- MyGradientBasedSearch() ---" << endl;
+    *dout << "[" << itr_cnt << "]";
+    *dout << "\t f'(" << x << ") = " << gx_x << endl;
+  }
+
+  // 探索処理（勾配が閾値以下（≒０）になるまで）
+  while( MyAbs( gx_x ) > thres ){
+
+    // 勾配の正負から検索方向を決める。
+    h = - MySgn( gx_x ) * MyAbs( h );
+
+    // 現在位置から h 離れた位置の関数値を求める
+    X = x;
+    Xd = x + h;
+    fx_X = fx( X );
+    fx_Xd = fx( Xd );
+    
+    if( dout ){
+      *dout << "\t f(" << x << ") = " << fx_X << ",\t";
+      *dout << "f(" << x << " + " << h << ") = " << fx_Xd << endl;
+    }
+
+    // 関数値が小さくなっていれば
+    if( fx_X > fx_Xd ){
+
+      // 関数値がもっと小さくなるようにさらに h を大きくする。
+      int cnt = 0;
+      while( fx_X > fx_Xd ){ // 関数値が逆に大きくなるまで
+
+        // h を倍々に
+        h *= 2;
+        X = Xd;
+        Xd = X + h;
+
+        // 関数値の計算
+        fx_X = fx( X );
+        fx_Xd = fx( Xd );
+        
+        if( dout ){
+          *dout << "\t f(" << X << ") = " << fx_X << ",\t";
+          *dout << "f(" << X << " + " << h << ") = " << fx_Xd << endl;
+        }
+
+        // 安全のため、閾値以上繰り返したらループを抜ける。
+        if( ++cnt > MAX_ITR_NUM2 ) break;
+      }
+
+      // 位置の更新
+      x = X;
+      h *= .5;
+      
+    }// if
+    
+    // 逆に、関数値が大きくなっていたら
+    else{
+
+      // 大きすぎた h を小さくする
+      int cnt = 0;
+      while( fx_X < fx_Xd ){
+
+        // h を半分に
+        h *= .5;
+        Xd = Xd - h;
+
+        // 関数値の計算
+        fx_Xd = fx( Xd );
+        
+        if( dout ){
+          *dout << "\t f(" << X << ") = " << fx_X << ",\t";
+          *dout << "f(" << X << " + " << h << ") = " << fx_Xd << endl;
+        }
+        
+        // 安全のため、閾値以上繰り返したらループを抜ける。
+        if( ++cnt > MAX_ITR_NUM2 ) break;
+      }
+
+      // 位置の更新
+      x = Xd;
+      h *= 2;
+      
+    }// else
+
+    // 繰り返し回数のカウント
+    itr_cnt += 1;
+
+    // 最大回数を超えたら計算終了
+    if( itr_cnt > max_itr_num ){
+      break;
+    }
+
+    // 勾配の値を更新
+    gx_x = MyCalcGrad( fx, x );
+    
+    if( dout ){
+      *dout << "[" << itr_cnt << "]";
+      *dout << "\t f'(" << x << ") = " << gx_x << endl;
+    }
+    
+  }// while
+
+  // 出力値のセット
+  *out = x;
+  
+  return 0;
+}
+
+//----------------------------------------------------------------------------
+// MyDownhillSimplex
+// ・関数の最小値を求める関数
+// ・Downhill Simplex 法 (Nelder-Mead)
+//----------------------------------------------------------------------------
+
+int
+MyDownhillSimplex( double (*fx)( const std::vector< double > & ), // 評価関数
+                   std::vector< double > x_init, // 初期値
+                   std::vector< double > &out, // 出力値。評価関数の値を最小にする x 。
+                   double thres = 1E-06, // 終了条件： シンプレックスサイズがこの値以下。 
+                   int max_itr_num = 100, // 終了条件： 繰り返し計算回数の最大値。
+                   std::ostream *dout = 0 // デバッグ出力
+                   ){
+  using namespace std;
+  
+  if( dout ) *dout << "--- MyDownhillSimplex() ---" << endl;
+
+  // 固定パラメータ
+  const double ALPHA = 1; // 反射の大きさ
+  const double GAMMA = 2; // 拡張の大きさ
+  const double RHO = 0.5; // 収縮の大きさ
+  const double SIGMA = 0.5; // シンプレックス縮小の大きさ
+  const double INIT_SMP_SIZE_PCT = 5; // 初期値の何％の範囲でシンプレックスを生成するか
+  const double INIT_SMP_SIZE_WHEN_ZERO = 0.00025; // 上記で初期値がゼロだった場合に代わりに使う値
+  
+  // シンプレックス
+  typedef multimap< double, vector< double > > map_type;
+  map_type smp;
+
+  // 次元
+  int n = x_init.size();
+  
+  // 諸変数
+  vector< double > x_in;
+  double x_out;
+
+  // --- 初期値の周りに乱数でシンプレックスを生成 ---
+
+  for( int i = 0; i < n; i++ ){
+    x_in.clear();
+    for( int j = 0; j < n; j++ ){
+      double rand_val = ( rand() / (double)RAND_MAX - 0.5 ) * 2;
+      double size = MyAbs( x_init[ j ] * INIT_SMP_SIZE_PCT / 100.0 );
+      double val = x_init[ j ] + rand_val * size;
+      if( x_init[ j ] == 0 ) val = INIT_SMP_SIZE_WHEN_ZERO;
+      x_in.push_back( val );
+    }
+    x_out = fx( x_in );
+    smp.insert( make_pair< double, vector< double > >( x_out, x_in ) );
+  }
+
+  // 重心が初期値になるように最後の頂点位置を決定
+  x_in.clear();
+  for( int i = 0; i < n; i++ ){
+    double sum = 0;
+    for( map_type::const_iterator it = smp.begin(); it != smp.end(); it++ ){
+      sum += it->second[ i ];
+    }
+    double val = ( n + 1 ) * x_init[ i ] - sum;
+    x_in.push_back( val );
+  }
+  x_out = fx( x_in );
+  smp.insert( make_pair< double, vector< double > >( x_out, x_in ) );
+
+  // --- 探索処理 ---
+
+  int itr_count = 0; 
+  while( itr_count < max_itr_num ){
+
+    // 現時点での解
+    vector< double > x_min = (smp.begin())->second;
+
+    // その位置での関数値
+    double f_min = (smp.begin())->first;
+
+    if( dout ){
+      *dout << "[" << itr_count << "]\t f_min: " << f_min << endl;
+      *dout << "\t x_min: " << x_min << endl;
+    }
+
+    // 繰り返し回数のカウント
+    itr_count++;
+
+    // --- 収束判定 ---
+
+    // シンプレックスの重心を求める
+    vector< double > smp_cent( n, 0 );
+    for( map_type::const_iterator it = smp.begin(); it != smp.end(); it++ ){
+      smp_cent = smp_cent + it->second;
+    }
+    smp_cent = smp_cent / (double)( smp.size() );
+
+    // 重心点からのシンプレックスの各頂点の距離の平均値をシンプレックスサイズとする
+    double smp_size = 0;
+    for( map_type::const_iterator it = smp.begin(); it != smp.end(); it++ ){
+      smp_size += MyVecNorm( it->second - smp_cent );
+    }
+    smp_size /= (double)( smp.size() );
+    
+    if( dout ) *dout << "\t smp_size: " << smp_size << endl;
+
+    // シンプレックスサイズが閾値を下回れば、計算終了
+    if( smp_size < thres ){
+      break;
+    }
+
+    if( dout ){
+      *dout << "\t simplex:" << endl;
+      for( map_type::const_iterator it = smp.begin(); it != smp.end(); it++ ){
+        *dout << "\t\t" << it->first << "\t (" << it->second << ")" << endl;
+      }
+    }
+    
+    // --- Step.1：反射 ---
+
+    // シンプレックスの各頂点のうち、関数値が最大となる頂点を除いた残りの頂点の重心を求める
+    vector< double > x_c( n, 0 );
+    map_type::iterator it = smp.begin();
+    for( int j = 0; j < smp.size() - 1; j++ ){
+      x_c = x_c + it->second;
+      it++;
+    }
+    x_c = x_c / (double)n;
+
+    // その重心位置に対象に、関数値が最大となっている頂点位置を移動
+    vector< double > x_max = (smp.rbegin())->second;
+
+    // 移動量は乱数で決める。場合によって ”振動” してデッドロックになることを防ぐため。
+    double alpha = ALPHA + ( rand() / (double)RAND_MAX );
+    // double alpha = ALPHA; // 乱数を使わない場合は、この行を使う。（使わない実装も一般的）
+    vector< double > x_ref = x_c + alpha * ( x_c - x_max );
+
+    // 移動した先での関数値を求める。
+    double f_ref, f_max;
+    f_ref = fx( x_ref );
+
+    // 現在の（移動前の）関数の最大値
+    f_max = fx( x_max );
+    
+    if( dout ){
+      *dout << "\t Step.1:" << endl;
+      *dout << "\t\t x_c: " << x_c << endl;
+      *dout << "\t\t x_max: " << x_max << endl;
+      *dout << "\t\t x_ref: " << x_ref << endl;
+      *dout << "\t\t f_ref: " << f_ref << "\t f_max: " << f_max << endl;
+      if( f_ref <= f_max ) *dout << "\t\t f_ref(" << f_ref << ") <= f_max(" << f_max << ")" << endl;
+      else *dout << "\t\t f_ref(" << f_ref << ") > f_max(" << f_max << ")" << endl;
+    }
+
+    // もし移動によって、関数値が減少していたら...
+    if( f_ref <= f_max ){
+      
+      // --- Step.2：拡張 ---
+
+      // さらに関数値が減少することを狙って、同じ方向にさらに移動する。
+      // また乱数で移動量を決めることにする。
+      //vector< double > x_exp = x_c + GAMMA * ( x_c - x_max );
+      double gamma = GAMMA + ( rand() / (double)RAND_MAX );
+      // double gamma = GAMMA; // 乱数を使わない場合はこっち。
+      vector< double > x_exp = x_c + gamma * ( x_c - x_max );
+
+      // 移動先での関数値を求める
+      double f_exp;
+      f_exp = fx( x_exp );
+
+      // シンプレックスから関数値が最大となっていた頂点を削除
+      it = smp.begin();
+      for( int i = 0; i < smp.size() - 1; i++ ) it++;
+      smp.erase( it );
+
+      // 拡張した先での関数値がさらに小さくなっていたら、拡張先の位置で頂点を入れ替え
+      if( f_ref <= f_exp ){
+        smp.insert( make_pair< double, vector< double > >( f_ref, x_ref ) );
+      }
+      // そうでなかった場合は、拡張前の位置（反射点）で頂点を入れ替え
+      else{
+        smp.insert( make_pair< double, vector< double > >( f_exp, x_exp ) );
+      }
+
+      if( dout ){
+        *dout << "\t Step.2:" << endl;
+        *dout << "\t\t x_exp: " << x_exp << endl;
+        *dout << "\t\t f_ref: " << f_ref << "\t f_exp: " << f_exp << endl;
+        if( f_ref <= f_exp ){
+          *dout << "\t\t f_ref(" << f_ref << ") <= f_exp(" << f_exp << ")" << endl;
+          *dout << "\t\t x_max(" << x_max << ") ---> x_ref(" << x_ref << ")" << endl;
+        }
+        else{
+          *dout << "\t\t f_ref(" << f_ref << ") > f_exp(" << f_exp << ")" << endl;
+          *dout << "\t\t x_max(" << x_max << ") ---> x_exp(" << x_exp << ")" << endl;
+        }
+      }
+
+      // 次のステップへ
+      continue;
+    }
+
+    // 関数値が逆に増加していたら...
+    else{
+      
+      // --- Step.3：収縮 ---
+
+      // 行き過ぎたので、移動量を縮める。
+      // ここでも移動量は乱数で決める。
+      //vector< double > x_con = x_c + RHO * ( x_c - x_max );
+      double rho = RHO + rand() / (double)RAND_MAX;
+      // double rho = RHO; // 乱数を使わない場合はこっち
+      vector< double > x_con = x_c + rho * ( x_c - x_max );
+
+      // 縮小先での関数値
+      double f_con;
+      f_con = fx( x_con );
+
+      if( dout ){
+        *dout << "\t Step.3:" << endl;
+        *dout << "\t\t x_con: " << x_con << endl;
+        *dout << "\t\t f_con: " << f_con << endl;
+        *dout << "\t\t f_max: " << f_max << endl;
+        if( f_con <= f_max ){
+          *dout << "\t\t f_con(" << f_con << ") <= f_max(" << f_max << ")" << endl;
+        }
+        else{
+          *dout << "\t\t f_con(" << f_con << ") > f_max(" << f_max << ")" << endl;
+        }
+      }
+
+      // 縮小によって無事関数値が減少していたら...
+      if( f_con <= f_max ){
+
+        // シンプレックスの頂点のうち、関数値が最大となっているものを削除
+        it = smp.begin();
+        for( int i = 0; i < smp.size() - 1; i++ ) it++;
+        smp.erase( it );
+
+        // 縮小先の位置を頂点に加える
+        smp.insert( make_pair< double, vector< double > >( f_con, x_con ) );
+        
+        if( dout ){
+          *dout << "\t\t x_max(" << x_max << ") ---> x_con(" << x_con << ")" << endl;
+        }
+
+        // 次のステップへ
+        continue;
+      }
+
+      // それでも関数値が減少しなかったら
+      else{
+        
+        // --- Step.4：シンプレックス収縮 ---
+
+        // あらたにシンプレックスを用意
+        map_type smp_new;
+
+        // 現時点の最小値を与える頂点だけはそのまま利用
+        smp_new.insert( make_pair< double, vector< double > >( f_min, x_min ) );
+        it = smp.begin();
+        it++;
+
+        // その他の頂点は、現在の頂点位置からそれぞれ縮小した位置に頂点を移動
+        for( int i = 1; i < smp.size(); i++ ){
+          vector< double > x_old = it->second;
+          vector< double > x_new = x_min + SIGMA * ( x_old - x_min );
+          double f_new;
+          f_new = fx( x_new );
+          smp_new.insert( make_pair< double, vector< double > >( f_new, x_new ) );
+          it++;
+        }
+
+        // 新たに作ったシンプレックスと現在のシンプレックスを入れ替え
+        smp.swap( smp_new );
+
+        if( dout ){
+          *dout << "\t Step.4" << endl;
+          map_type::const_iterator it1 = smp_new.begin();
+          map_type::const_iterator it2 = smp.begin();
+          for( int i = 0; i < smp.size(); i++ ){
+            *dout << "\t\t" << it1->second << " ---> " << it2->second << endl;
+            it1++;
+            it2++;
+          }
+        }
+
+        // 次のステップへ
+        
+      }// else
+    }// else
+
+  }// while 
+  
+  // 出力値にセット
+  out = (smp.begin())->second;
+
+  return 0;
+}
+
+//----------------------------------------------------------------------------
+// MyLineSearch
+// ・fx( x + t * dx ) を最小にする t の値を返す
+// ・x, dx は、ベクトル
+//----------------------------------------------------------------------------
+
+// 内部で使う１変数の最小値検索アルゴリズムの種類
+typedef enum {
+  GoldenSection = 0,
+  GradientBased,
+  DownhillSimplex
+} MyLineSearch_MethodType;
+
+// 内部で使う関数
+const std::vector< double > * g_MyLineSearch_x;
+const std::vector< double > * g_MyLineSearch_dx;
+double (*g_MyLineSearch_fx)( const std::vector< double > & );
+double MyLineSearch_Ft( double t ){
+  return g_MyLineSearch_fx( (*g_MyLineSearch_x) + t * (*g_MyLineSearch_dx) );
+}
+double MyLineSearch_Ft2( const std::vector< double > &t ){
+  assert( t.size() > 0 );
+  return g_MyLineSearch_fx( (*g_MyLineSearch_x) + t[0] * (*g_MyLineSearch_dx) );
+}
+
+int
+MyLineSearch( double (*fx)( const std::vector< double > &), // 評価関数
+              const std::vector< double > &x, // 初期位置
+              const std::vector< double > &dx, // 検索方向
+              double *out, // 出力値
+              MyLineSearch_MethodType type = GoldenSection, // 探索アルゴリズム
+              double thres = 1E-06, // 検索終了のしきい値
+              int max_itr_num = 100, // 繰り返し計算の最大回数
+              std::ostream *dout = 0 // デバッグ用出力
+              ){
+  using namespace std;
+
+  if( dout ) *dout << "--- MyLineSearch() ---" << endl;
+
+  // F(t) = fx( x + t * dx ) のセットアップ
+  g_MyLineSearch_x = &x;
+  g_MyLineSearch_dx = &dx;
+  g_MyLineSearch_fx = fx;
+  double (*ft)( double ) = MyLineSearch_Ft;
+  double (*ft2)( const std::vector< double > & ) = MyLineSearch_Ft2;
+  
+  switch( type ){
+    case GradientBased:
+      {
+        double t_init = 0.0; // t の初期値
+        assert( ! MyGradientBasedSearch( ft, t_init, out, thres, max_itr_num, dout ) );
+      }
+      break;
+    case GoldenSection:
+      {
+        // --- 検索範囲を決める ---
+        const double STEP = 0.00025; // いくつか適当かわからない。値が大きいほど局所解を巻き込みやすい。
+        const int MAX_ITR = 25;
+        double a = -STEP;
+        double b = STEP;
+        double fa = ft( a );
+        double ff = ft( 0 );
+        double fb = ft( b );
+        if( dout ){
+          *dout << "[init]\t";
+          *dout << "f(" << a << ") = " << fa << ",\t";
+          *dout << "f(0) = " << ff << ",\t";
+          *dout << "f(" << b << ") = " << fb << endl;
+        }
+        if( fa <= ff && ff < fb ){
+          for( int i = 0; i < 25; i++ ){
+            a *= 2;
+            fa = ft( a );
+            if( fa > ff ) break;
+          }
+          assert( fa > ff );
+        }
+        else if( fa > ff && ff >= fb ){
+          for( int i = 0; i < MAX_ITR; i++ ){
+            b *= 2;
+            fb = ft( b );
+            if( fb > ff ) break;
+          }
+          assert( fb > ff );
+        }
+        else if( fa <= ff && ff >= fb ){
+          for( int i = 0; i < MAX_ITR; i++ ){
+            a *= 2;
+            fa = ft( a );
+            if( fa > ff ) break;
+          }
+          assert( fa > ff );
+          for( int i = 0; i < MAX_ITR; i++ ){
+            b *= 2;
+            fb = ft( b );
+            if( fb > ff ) break;
+          }
+          assert( fb > ff );
+        }
+        assert( fa > ff && ff < fb );
+        if( dout ){
+          *dout << "[start]\t";
+          *dout << "f(" << a << ") = " << fa << ",\t";
+          *dout << "f(0) = " << ff << ",\t";
+          *dout << "f(" << b << ") = " << fb << endl;
+        }
+        // --- 探索実行 ---
+        assert( ! MyGoldenSection( ft, a, b, out, thres, max_itr_num, dout ) );
+      }
+      break;
+    case DownhillSimplex:
+      {
+        // １次元の Downhill Simplex
+        vector< double > t_init( 1, 0 );
+        vector< double > t_out( 1 );
+        assert( ! MyDownhillSimplex( ft2, t_init, t_out, thres, max_itr_num, dout ) );
+        *out = t_out[ 0 ];
+      }
+      break;
+  }
+
+  return 0;
+}
+
+//----------------------------------------------------------------------------
+// MySteepestDescent
+// ・最急降下法
+// ・関数 double f( const vector< double > &x ) の値を最小にする入力 x を求める
+//----------------------------------------------------------------------------
+
+int
+MySteepestDescent( double (*fx)( const std::vector< double > &), // 評価関数
+                   std::vector< double > &x, // 出力値。最初は初期値を入れておく。
+                   MyLineSearch_MethodType type = GoldenSection, // 内部で使う直線探索のアルゴリズム
+                   double thres = 1E-06, // 検索終了のしきい値
+                   int max_itr_num = 100, // 繰り返し計算の最大回数
+                   std::ostream *dout = 0 // デバッグ用出力
+                   ){
+  using namespace std;
+
+  // 繰り返し数のカウンター
+  int itr_count = 0;
+
+  // 探索処理
+  while( itr_count++ < max_itr_num ){
+
+    // 現在位置での勾配
+    vector< double > x_grad;
+    assert( ! MyVecGrad( fx, x, x_grad ) );
+
+    // 勾配方向に直線検索
+    double t;
+    assert( ! MyLineSearch( fx, x, x_grad, &t, type ) );
+
+    // 位置の更新
+    vector< double > dx = t * x_grad;
+    x = x + dx;
+
+    if( dout ){
+      if( itr_count == 1 ) *dout << "--- MySteepestDescent() ---" << endl;
+      *dout << "[" << itr_count << "] ";
+      *dout << "x: " << (x - dx) << " ";
+      *dout << "x_grad: " << x_grad << " ";
+      *dout << "t: " << t << " ";
+      *dout << "dx: " << dx << " ";
+      *dout << "norm(dx): " << MyVecNorm( dx ) << " ";
+      *dout << "x updated: " << x << endl;
+    }
+    
+    // 終了判定
+    if( MyVecNorm( dx ) < thres ) break;
+    
+  } // while
+
+  return 0;
 }
 
 }// my
