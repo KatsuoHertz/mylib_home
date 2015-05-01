@@ -28,6 +28,12 @@ struct MyPoint2T {
   T y;
   MyPoint2T() : x( 0 ), y( 0 ){ }
   MyPoint2T( T x0, T y0 ) : x( x0 ), y( y0 ){ }
+  bool operator == ( const MyPoint2T &rhs ) const {
+    return this->x == rhs.x && this->y == rhs.y;
+  }
+  bool operator != ( const MyPoint2T &rhs ) const {
+    return this->x != rhs.x || this->y != rhs.y;
+  }
 };
 
 /**
@@ -679,19 +685,73 @@ int MyAreaExpansion( const IplImage *img_in, int x, int y, int thres,  IplImage 
 }
 
 /**
+ * 行列の行数と列数を構造体にまとめて返す
+ * - 行列が矩形かどうかはノーチェック（行列の第１行目しか見ない）
+ */
+inline
+MyPoint2T< int >
+MyMatSize( const std::vector< std::vector< double > > &A ){
+  return A.empty() ? MyPoint2T< int >( 0, 0 ) : MyPoint2T< int >( A.size(), A[ 0 ].size() );
+}
+
+/**
+ * 正方行列かどうかのチェック
+ */
+inline
+bool
+MyMatIsSquare( const std::vector< std::vector< double > > &A ){
+  for( int i = 0; i < A.size(); i++ ) if( A[ i ].size() != A.size() ) return false;
+  return true;
+}
+
+/**
+ * 行列が矩形（列数が行によって変化しない）かどうかのチェック
+ */
+inline
+bool
+MyMatIsRect( const std::vector< std::vector< double > > &A ){
+  for( int i = 0; i < A.size(); i++ ) if( A[ i ].size() != A[ 0 ].size() ) return false;
+  return true;
+}
+
+/**
+ * ２つの行列の行数と列数が同じかどうかのチェック
+ * - 全行全列について調べる
+ */
+inline
+bool
+MyMatAreTheSameSize( const std::vector< std::vector< double > > &A,
+                     const std::vector< std::vector< double > > &B ){
+  return MyMatIsRect( A ) && MyMatIsRect( B ) && MyMatSize( A ) == MyMatSize( B );
+}
+
+/**
+ * 行列が指定された行数と列数かどうか調べる
+ */
+inline
+bool
+MyMatSizeIs( const std::vector< std::vector< double > > &A,
+             int row, int col ){
+  if( A.size() != row ) return false;
+  for( int i = 0; i < row; i++ ) if( A[ i ].size() != col ) return false;
+  return true;
+}
+
+/**
  * 行列演算：逆行列
  * - 3x3 行列の解析解
  * @param [in] src 計算対象の行列。
  * @param [out] dst メモリが確保済みでなければ内部で確保。src と同じサイズの確保済みを渡しても OK 。
  * @return 行列式の値を返す。行列式がゼロの場合はエラー。
  */
-double
 inline
+double
 MyMatInv3x3( const std::vector< std::vector< double > > &src,
              std::vector< std::vector< double > > &dst )
 {
-  assert( src.size() == 3 );
-  assert( src[ 0 ].size() == 3 );
+  // assert( src.size() == 3 );
+  // assert( src[ 0 ].size() == 3 );
+  assert( MyMatSize( src ) == MyPoint2i( 3, 3 ) );
 
   double detA =
       src[0][0] * src[1][1] * src[2][2] +
@@ -735,14 +795,15 @@ MyMatInv3x3( const std::vector< std::vector< double > > &src,
  * @param [out] dst メモリが確保済みでなければ内部で確保。src と同じサイズの確保済みを渡しても OK 。
  * @return 行列式の値を返す。行列式がゼロの場合はエラー。
  */
-double
 inline
+double
 MyMatInv4x4( const std::vector< std::vector< double > > &src,
              std::vector< std::vector< double > > &dst )
 {
-  assert( src.size() == 4 );
-  assert( src[ 0 ].size() == 4 );
-
+  // assert( src.size() == 4 );
+  // assert( src[ 0 ].size() == 4 );
+  assert( MyMatSize( src ) == MyPoint2i( 4, 4 ) );
+  
   double detA =
       src[0][0]*src[1][1]*src[2][2]*src[3][3] + src[0][0]*src[1][2]*src[2][3]*src[3][1] + src[0][0]*src[1][3]*src[2][1]*src[3][2] +
       src[0][1]*src[1][0]*src[2][3]*src[3][2] + src[0][1]*src[1][2]*src[2][0]*src[3][3] + src[0][1]*src[1][3]*src[2][2]*src[3][0] +
@@ -1082,7 +1143,8 @@ T MyCalcGrad( T (*fx)( T ), T x, T h = 1E-06 ){
 }
 
 /**
- * １変数の最小値検索
+ * 最小化
+ * - １変数関数
  * - 黄金分割法
  * - a < x < b の範囲における f(x) の値を最小にする x の値を返す。
  * @param fx 評価関数
@@ -1149,7 +1211,8 @@ MyGoldenSection( double (*fx)( double ),
 }
 
 /**
- * １変数の最小値検索
+ * 最小化
+ * - １変数関数
  * - 勾配利用。勾配は数値微分。
  * @param fx 評価関数
  * @param x_init 初期値
@@ -1294,7 +1357,8 @@ MyGradientBasedSearch( double (*fx)( double ),
 }
 
 /**
- * 多変数関数の最小値検索
+ * 最小化
+ * - 多変数関数
  * - Downhill Simplex 法 (Nelder-Mead)
  * - 関数 double fx( const vector< double > &x ) の値を最小にする入力 x を求める
  * - １変数関数も可。
@@ -1812,9 +1876,7 @@ inline
 std::vector< std::vector< T > >
 operator + ( const std::vector< std::vector< T > > &A,
              const std::vector< std::vector< T > > &B ){
-  assert( A.size() > 0 );
-  assert( A.size() == B.size() );
-  assert( A[ 0 ].size() == B[ 0 ].size() );
+  assert( MyMatSize( A ) == MyMatSize( B ) );
   using namespace std;
   int M = A.size();
   int N = A[ 0 ].size();
@@ -1836,6 +1898,7 @@ inline
 std::vector< std::vector< T > >
 operator - ( const std::vector< std::vector< T > > &A,
              const std::vector< std::vector< T > > &B ){
+  assert( MyMatSize( A ) == MyMatSize( B ) );
   using namespace std;
   int M = A.size();
   int N = A[ 0 ].size();
@@ -2015,15 +2078,16 @@ MyLUDecomp( std::vector< std::vector< double > > &A ){
 
 /**
  * LU 分解による連立一次方程式の計算
+ * - 計算量は、係数行列のサイズ n に対して、O(n^3)
  * @param[in,out] A 正方行列。関数の呼び出し後は、LU 分解された結果が入る。
  * @param[in,out] x 解。初期値は不要。メモリは確保済みでも確保済みでなくても可。
  * @param[in,out] b 定数ベクトル。内部で変数として利用されるため、呼び出し後、中身は変更されている。
- * @return 0:成功、0以外：失敗
  */
 int
 MyLUSolve( std::vector< std::vector< double > > &A,
            std::vector< double > &x,
-           std::vector< double > &b
+           std::vector< double > &b,
+           bool modify = true
            ){
   using namespace std;
 
@@ -2057,6 +2121,237 @@ MyLUSolve( std::vector< std::vector< double > > &A,
     assert( A[ i ][ i ] != 0 );
     x[ i ] /= A[ i ][ i ];
   }
+
+  return 0;
+}
+
+/**
+ * LU 分解による連立一次方程式の計算
+ * - 事前に LU 分解済みの行列を渡す。
+ * - 定数ベクトル b を次々変えて方程式を解きたい用。
+ * - 計算量は、係数行列のサイズ n に対して、O(n^2)
+ * @param[in] L 下半分行列。
+ * @param[in] U 上半分行列。
+ * @param[in,out] x 解。初期値は不要。メモリは確保済みでも確保済みでなくても可。
+ * @param[in,out] b 定数ベクトル。内部で変数として利用されるため、呼び出し後、中身は変更されている。
+ */
+int
+MyLUSolve( const std::vector< std::vector< double > > &L,
+           const std::vector< std::vector< double > > &U,
+           std::vector< double > &x,
+           std::vector< double > &b
+           ){
+  using namespace std;
+
+  // 入力チェック
+  assert( MyMatIsSquare( L ) && MyMatIsSquare( U ) );
+  assert( MyMatSize( L ) == MyMatSize( U ) );
+  int N = L.size();
+  assert( b.size() == N );
+  if( x.empty() ) x.resize( N );
+  else assert( x.size() == N );
+
+  // 前進代入
+  for( int i = 0; i < N; i++ ){
+    b[ i ] = b[ i ];
+    for( int j = 0; j < i; j++ ){
+      b[ i ] -= L[ i ][ j ] * b[ j ];
+    }
+  }
+
+  // 後退代入
+  for( int i = N - 1; i >= 0; i-- ){
+    x[ i ] = b[ i ];
+    for( int j = i + 1; j < N; j++ ){
+      x[ i ] -= U[ i ][ j ] * x[ j ];
+    }
+    assert( U[ i ][ i ] != 0 );
+    x[ i ] /= U[ i ][ i ];
+  }
+  
+  return 0;
+}
+
+/**
+ * LU 分解された結果が一緒になった行列 A から、下半分行列 L、上半分行列 U を抽出する。
+ * @param[in] A MyLUDecomp() で LU 分解済みの行列を渡すこと
+ * @param[out] L 下半分行列。メモリは確保済み or 未確保でも良い。
+ * @param[out] U 上半分行列。メモリは確保済み or 未確保でも良い。
+ */
+int
+MyLUSet( const std::vector< std::vector< double > > &A,
+         std::vector< std::vector< double > > &L,
+         std::vector< std::vector< double > > &U ){
+  using namespace std;
+
+  assert( MyMatIsSquare( A ) );
+  int N = A.size();
+  if( L.empty() ) L.resize( N, vector< double >( N ) );
+  else assert( MyMatAreTheSameSize( L, A ) );
+  if( U.empty() ) U.resize( N, vector< double >( N ) );
+  else assert( MyMatAreTheSameSize( U, A ) );
+
+  for( int i = 0; i < N; i++ ){
+    for( int j = i; j < N; j++ ){
+      U[ i ][ j ] = A[ i ][ j ];
+    }
+    for( int j = 0; j < i; j++ ){
+      L[ i ][ j ] = A[ i ][ j ];
+    }
+    L[ i ][ i ] = 1;
+  }
+  return 0;
+}
+
+/**
+ * 行列が対角優位かどうかのチェック
+ * - 対角優位：係数行列の各行について、対角成分の絶対値が非対角成分の絶対値の総和よりも大きいこと
+ * @return 対角優位:true, そうでない場合:false
+ */
+bool
+MyMatIsDiagDominant( const std::vector< std::vector< double > > &A ){
+  int N = A.size();
+  for( int i = 0; i < N; i++ ){
+    double sum = 0;
+    for( int j = 0; j < N; j++ ){
+      if( i != j ) sum += MyAbs( A[ i ][ j ] );
+    }
+    if( sum > MyAbs( A[ i ][ i ] ) ) return false;
+  }
+  return true;
+}
+
+/**
+ * 連立一次方程式を解く
+ * - Ax = b
+ * - ヤコビ反復法
+ * - 係数行列が以下のいずれかの条件を満たさないと収束しない
+ *   - 対角優位（係数行列の各行について対角成分の絶対値が非対角成分の絶対値の総和よりも大きい）
+ *   - 対称行列＆正値（固有値が全て正）
+ * - 計算量は、係数行列のサイズ n に対して、O(n^2)
+ * @param A 係数行列。n x n の正方行列。
+ * @param[in,out] x 解ベクトル。初期値を入れておく or 初期値なしの空ベクトル。空の場合は初期値 0 。
+ * @param thres 収束条件：解の変化量（ノルム）がこの値を下回ったら計算終了
+ * @param max_itr_num 収束条件：繰り返し計算の最大繰り返し回数。
+ * @param dout デバッグ情報の表示
+ */
+int
+MyJacobiSolve( const std::vector< std::vector< double > > &A,
+               std::vector< double > &x,
+               const std::vector< double > &b,
+               double thres = 1E-06,
+               int max_itr_num = 100,
+               std::ostream *dout = 0 ){
+  using namespace std;
+
+  // 次元
+  int N = A.size();
+
+  // 入力チェック
+  assert( N > 0 );
+  assert( A[ 0 ].size() == N );
+  assert( b.size() == N );
+  if( x.empty() ) x.resize( N, 0 );
+  else assert( x.size() == N );
+
+  // 収束するかどうかのチェック
+  // if( ! MyMatIsDiagDominant( A ) ) return -1;
+  
+  // 一時変数
+  vector< double > x_next( N );
+  
+  if( dout ){
+    *dout << "--- MyJacobiSolve() ---" << endl;
+    *dout << "[0]\t" << x << endl;
+  }
+    
+  // 反復処理
+  for( int k = 0; k < max_itr_num; k++ ){
+    for( int i = 0; i < N; i++ ){
+      x_next[ i ] = b[ i ];
+      for( int j = 0; j < N; j++ ){
+        if( i != j ){
+          x_next[ i ] -= A[ i ][ j ] * x[ j ];
+        }
+      }//j
+      assert( A[ i ][ i ] != 0 );
+      x_next[ i ] /= A[ i ][ i ];
+    }//i
+
+    // 収束判定
+    double dx = MyVecNorm( x_next - x );
+    if( dout ) *dout << "[" << k + 1 << "]\t x: " << x_next << " dx: " << dx << endl;
+    if( dx < thres ) break;
+
+    // 更新
+    x = x_next;
+
+  }//k
+  
+  return 0;
+}
+
+/**
+ * 連立一次方程式を解く
+ * - Ax = b
+ * - ガウスザイデルの反復法
+ * - 係数行列が以下のいずれかの条件を満たさないと収束しない
+ *   - 対角優位（係数行列の各行について対角成分の絶対値が非対角成分の絶対値の総和よりも大きい）
+ *   - 対称行列＆正値（固有値が全て正）
+ * - 計算量は、係数行列のサイズ n に対して、O(n^2)
+ * - ヤコビの反復法に比べて、内部で使うメモリの量が少ない＆収束が速い。
+ * - なので、基本的にはヤコビ反復法よりはこっちを使った方がよい。
+ * @param A 係数行列。n x n の正方行列。
+ * @param[in,out] x 解ベクトル。初期値を入れておく or 初期値なしの空ベクトル。空の場合は初期値 0 。
+ * @param thres 収束条件：解の変化量（各要素の変化量絶対値の総和）がこの値を下回ったら計算終了
+ * @param max_itr_num 収束条件：繰り返し計算の最大繰り返し回数。
+ * @param dout デバッグ情報の表示
+ */
+int
+MyGaussSeidelSolve( const std::vector< std::vector< double > > &A,
+                    std::vector< double > &x,
+                    const std::vector< double > &b,
+                    double thres = 1E-06,
+                    int max_itr_num = 100,
+                    std::ostream *dout = 0 ){
+  using namespace std;
+
+  // 次元
+  int N = A.size();
+
+  // 入力チェック
+  assert( N > 0 );
+  assert( A[ 0 ].size() == N );
+  assert( b.size() == N );
+  if( x.empty() ) x.resize( N, 0 );
+  else assert( x.size() == N );
+
+  // 収束するかどうかのチェック
+  // if( ! MyMatIsDiagDominant( A ) ) return -1;
+  
+  if( dout ){
+    *dout << "--- MyGaussSeidelSolve() ---" << endl;
+    *dout << "[0]\t" << x << endl;
+  }
+    
+  // 反復処理
+  for( int k = 0; k < max_itr_num; k++ ){
+    double dx = 0; // 解の変化量計算（収束判定のため）
+    for( int i = 0; i < N; i++ ){
+      double x_old = x[ i ]; // 更新前の値を覚えておく（解の変化量計算のため）
+      x[ i ] = b[ i ];
+      for( int j = 0; j < N; j++ ){
+        if( j != i ) x[ i ] -= A[ i ][ j ] * x[ j ];
+      }//j
+      assert( A[ i ][ i ] != 0 );
+      x[ i ] /= A[ i ][ i ];
+      dx += MyAbs( x_old - x[ i ] );
+    }//i
+    // 収束判定
+    if( dout ) *dout << "[" << k + 1 << "]\t x: " << x << " dx: " << dx << endl;
+    if( dx < thres ) break;
+
+  }//k
   
   return 0;
 }
