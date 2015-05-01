@@ -1071,8 +1071,13 @@ inline T MyVecNorm( const std::vector< T > &a ){
  * @param h 数値微分に用いる微小変化値。デフォルトは、1E-6
  */
 template < typename T >
-inline int MyVecGrad( T (*fx)( const std::vector< T > & ), const std::vector< T > &x,
-           std::vector< T > &out, T h = 1E-06 ){
+inline
+int
+MyVecGrad( T (*fx)( const std::vector< T > & ),
+           const std::vector< T > &x,
+           std::vector< T > &out,
+           T h = 1E-06
+           ){
   using namespace std;
 
   // h が 0 だとゼロ割になってしまうのでダメ
@@ -2353,6 +2358,164 @@ MyGaussSeidelSolve( const std::vector< std::vector< double > > &A,
 
   }//k
   
+  return 0;
+}
+
+/**
+ * ニュートンラプソン法
+ * - 関数 double fx( const vector< double > &x ) の値を最小にする入力 x を求める
+ * - ナブラおよびヘッセを計算する関数を与える必要
+ *   - nx( const vector< double > &x_in, vector< double > &nf_out )
+ *   - Hx( const vector< double > &x_in, vector< vector< double > > &H_out )
+ * @param fx 評価関数
+ * @param nx ナブラ（勾配）を計算する関数
+ * @param Hx ヘッセ行列を計算する関数
+ * @param[in,out] x 出力値。最初は初期値を入れておく。
+ * @param thres 終了条件：x の変化量（ノルム）がこの値を下回ったら終了
+ * @param max_itr_num 終了条件：繰り返し計算回数がこの数を超えたら計算終了
+ * @param dout デバッグ表示
+ */
+int
+MyNewtonRaphson( double (*fx)( const std::vector< double > &),
+                 void (*nx)( const std::vector< double > &,
+                             std::vector< double > & ),
+                 void (*Hx)( const std::vector< double > &,
+                             std::vector< std::vector< double > > & ),
+                 std::vector< double > &x,
+                 double thres = 1E-06,
+                 int max_itr_num = 100,
+                 std::ostream *dout = 0
+                 ){
+  using namespace std;
+
+  // 諸変数
+  int n = x.size();
+  vector< double > n_x( n ), dx( n );
+  vector< vector< double > > H_x( n, vector< double >( n ) );
+  
+  // 反復処理
+  for( int k = 0; k < max_itr_num; k++ ){
+
+    // 現在位置での勾配
+    nx( x, n_x );
+
+    // 現在位置でのヘッセ
+    Hx( x, H_x );
+
+    // 連立一次方程式 H Δx = -∇f を解く 
+    n_x = -1.0 * n_x;
+    assert( ! MyLUSolve( H_x, dx, n_x ) );
+
+    // x の値を更新
+    x = x + dx;
+
+    if( dout ){
+      if( k == 0 ) *dout << "--- MyNewtonRaphson() ---" << endl;
+      *dout << "[" << k << "]\t x: " << x << "\t |dx|: " << MyVecNorm( dx ) << endl;
+    }
+    
+    // 収束判定
+    if( MyVecNorm( dx ) < thres ) break;
+
+  }//k
+  
+  return 0;
+}
+
+/**
+ * 数値微分（微小差分）でヘッセを計算する
+ * - d2f/dxdy = ( f(x+h,y+h) - f(x-h,y+h) - f(x+h,y-h) + f(x-h,y-h) ) / (4*h*h)
+ * @param h 差分計算時の微小変化量。二乗されることに注意。小さくしすぎると値がおかしくなる。
+ */
+template < typename T >
+inline
+int
+MyMatHessian( T (*fx)( const std::vector< T > & ),
+              const std::vector< T > &x,
+              std::vector< std::vector< T > > &out,
+              T h = 1E-3 ){
+  using namespace std;
+
+  // 入力チェック
+  assert( h != 0 );
+  
+  // 次元
+  int N = x.size();
+
+  // 出力バッファ
+  if( out.empty() ) out.resize( N, vector< T >( N ) );
+  else assert( MyMatSize( out ) == MyPoint2i( N, N ) );
+  
+  for( int i = 0; i < N; i++ ){
+    for( int j = i; j < N; j++ ){
+      vector< T > h1( x );
+      h1[ i ] += h;
+      h1[ j ] += h;
+      vector< T > h2( x );
+      h2[ i ] -= h;
+      h2[ j ] += h;
+      vector< T > h3( x );
+      h3[ i ] += h;
+      h3[ j ] -= h;
+      vector< T > h4( x );
+      h4[ i ] -= h;
+      h4[ j ] -= h;
+      out[ i ][ j ] = ( fx( h1 ) - fx( h2 ) - fx( h3 ) + fx( h4 ) ) / ( 4 * h * h );
+      out[ j ][ i ] = out[ i ][ j ];
+    }//j
+  }//i
+  
+  return 0;
+}
+
+/**
+ * ニュートンラプソン法
+ * - ナブラとヘッセを数値微分で計算するバージョン
+ * @param fx 評価関数
+ * @param[in,out] x 出力値。最初は初期値を入れておく。
+ * @param thres 終了条件：x の変化量（ノルム）がこの値を下回ったら終了
+ * @param max_itr_num 終了条件：繰り返し計算回数がこの数を超えたら計算終了
+ * @param dout デバッグ表示
+ */
+int
+MyNewtonRaphson( double (*fx)( const std::vector< double > &),
+                 std::vector< double > &x,
+                 double thres = 1E-06,
+                 int max_itr_num = 100,
+                 std::ostream *dout = 0
+                 ){
+  using namespace std;
+
+  // 諸変数
+  int n = x.size();
+  vector< double > n_x( n ), dx( n );
+  vector< vector< double > > H_x( n, vector< double >( n ) );
+  
+  // 反復処理
+  for( int k = 0; k < max_itr_num; k++ ){
+
+    // 現在位置での勾配
+    MyVecGrad( fx, x, n_x );
+
+    // 現在位置でのヘッセ
+    MyMatHessian( fx, x, H_x );
+
+    // 連立一次方程式 H Δx = -∇f を解く 
+    n_x = -1.0 * n_x;
+    assert( ! MyLUSolve( H_x, dx, n_x ) );
+
+    // x の値を更新
+    x = x + dx;
+
+    if( dout ){
+      if( k == 0 ) *dout << "--- MyNewtonRaphson() ---" << endl;
+      *dout << "[" << k << "]\t x: " << x << "\t |dx|: " << MyVecNorm( dx ) << endl;
+    }
+    
+    // 収束判定
+    if( MyVecNorm( dx ) < thres ) break;
+
+  }//k
   return 0;
 }
 
