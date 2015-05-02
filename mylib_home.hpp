@@ -511,6 +511,20 @@ inline T MyVecNorm( const std::vector< T > &a ){
 }
 
 /**
+ * ベクトルの内積を計算
+ */
+template < typename T >
+inline
+T MyVecDot( const std::vector< T > &a, const std::vector< T > &b ){
+  assert( a.size() == b.size() );
+  T sum = 0.0;
+  for( int i = 0; i < a.size(); i++ ){
+    sum += a[ i ] * b[ i ];
+  }
+  return sum;
+}
+
+/**
  * ベクトルの要素のヒストグラムを計算
  */
 template < typename T >
@@ -549,6 +563,47 @@ MyVecMostFrequentElem( const std::vector< T > &data,
   }
   if( count != NULL ) *count = max_val;
   return key_at_max;
+}
+
+/**
+ * 行列の行数と列数を構造体にまとめて返す
+ * - 行列が矩形かどうかはノーチェック（行列の第１行目しか見ない）
+ */
+inline
+MyPoint2< int >
+MyMatSize( const std::vector< std::vector< double > > &A ){
+  return A.empty() ? MyPoint2< int >( 0, 0 ) : MyPoint2< int >( A.size(), A[ 0 ].size() );
+}
+
+/**
+ * 正方行列かどうかのチェック
+ */
+inline
+bool
+MyMatIsSquare( const std::vector< std::vector< double > > &A ){
+  for( int i = 0; i < A.size(); i++ ) if( A[ i ].size() != A.size() ) return false;
+  return true;
+}
+
+/**
+ * 行列が矩形（列数が行によって変化しない）かどうかのチェック
+ */
+inline
+bool
+MyMatIsRect( const std::vector< std::vector< double > > &A ){
+  for( int i = 0; i < A.size(); i++ ) if( A[ i ].size() != A[ 0 ].size() ) return false;
+  return true;
+}
+
+/**
+ * ２つの行列の行数と列数が同じかどうかのチェック
+ * - 全行全列について調べる
+ */
+inline
+bool
+MyMatAreTheSameSize( const std::vector< std::vector< double > > &A,
+                     const std::vector< std::vector< double > > &B ){
+  return MyMatIsRect( A ) && MyMatIsRect( B ) && MyMatSize( A ) == MyMatSize( B );
 }
 
 /**
@@ -738,45 +793,54 @@ MyVecTrans( const std::vector< T > &x ){
   return A;
 }
 
-/**
- * 行列の行数と列数を構造体にまとめて返す
- * - 行列が矩形かどうかはノーチェック（行列の第１行目しか見ない）
+/** 
+ * ベクトルの行列化
+ * - 縦１列の行列になる
  */
+template < typename T >
 inline
-MyPoint2< int >
-MyMatSize( const std::vector< std::vector< double > > &A ){
-  return A.empty() ? MyPoint2< int >( 0, 0 ) : MyPoint2< int >( A.size(), A[ 0 ].size() );
+std::vector< std::vector< T > >
+MyVec2Mat( const std::vector< T > &x ){
+  using namespace std;
+  int N = x.size();
+  assert( N > 0 );
+  vector< vector< double > > A( N, vector< T >( 1 ) );
+  for( int i = 0; i < N; i++ ){
+    A[ i ][ 0 ] = x[ i ];
+  }
+  return A;
 }
 
-/**
- * 正方行列かどうかのチェック
+/** 
+ * ゼロベクトルを返す
  */
+template < typename T >
 inline
-bool
-MyMatIsSquare( const std::vector< std::vector< double > > &A ){
-  for( int i = 0; i < A.size(); i++ ) if( A[ i ].size() != A.size() ) return false;
-  return true;
+std::vector< T >
+MyVecZero( int n ){
+  return std::vector< T >( n, 0 );
 }
 
-/**
- * 行列が矩形（列数が行によって変化しない）かどうかのチェック
+/** 
+ * ゼロ行列を返す
  */
+template < typename T >
 inline
-bool
-MyMatIsRect( const std::vector< std::vector< double > > &A ){
-  for( int i = 0; i < A.size(); i++ ) if( A[ i ].size() != A[ 0 ].size() ) return false;
-  return true;
+std::vector< std::vector< T > >
+MyMatZero( int n ){
+  return std::vector< std::vector< T > >( n, std::vector< T >( n, 0 ) );
 }
 
-/**
- * ２つの行列の行数と列数が同じかどうかのチェック
- * - 全行全列について調べる
+/** 
+ * 単位行列を返す
  */
+template < typename T >
 inline
-bool
-MyMatAreTheSameSize( const std::vector< std::vector< double > > &A,
-                     const std::vector< std::vector< double > > &B ){
-  return MyMatIsRect( A ) && MyMatIsRect( B ) && MyMatSize( A ) == MyMatSize( B );
+std::vector< std::vector< T > >
+MyMatIdentity( int n ){
+  std::vector< std::vector< T > > A( n, std::vector< T >( n, 0 ) );
+  for( int i = 0; i < n; i++ ) A[ i ][ i ] = 1;
+  return A;
 }
 
 //#########################################################################################
@@ -1515,7 +1579,7 @@ class MyOptim {
   
  public:
   MyOptim() : _error_thres( 1E-6 ),
-              _max_itr_count( 100 ),
+              _max_itr_count( 10000 ),
               _dout( 0 ),
               _itr_count( 0 ),
               _cur_error( 0 ),
@@ -1614,7 +1678,7 @@ class MyOptim {
     // 固定パラメータ
     const double INIT_STEP_PCT = 1; // 最初の移動量。初期値に対する % で指定。
     const double INIT_STEP_WHEN_ZERO = 0.00025; // 初期値がゼロだった場合の最初の移動量。
-    const double MAX_ITR_NUM2 = 25; // 内部の while 文での最大繰り返し数。
+    const double MAX_ITR_NUM2 = 100; // 内部の while 文での最大繰り返し数。
 
     // 収束フラグのクリア
     _is_converged = false;
@@ -2304,6 +2368,379 @@ class MyOptim {
     return 0;
   }
 
+  /**
+   * 共役勾配法
+   * - 関数 double fx( const vector< double > &x ) の値を最小にする入力 x を求める
+   * - ナブラおよびヘッセを計算する関数を与える必要
+   *   - nx( const vector< double > &x_in, vector< double > &nf_out )
+   *   - Hx( const vector< double > &x_in, vector< vector< double > > &H_out )
+   * - ニュートン法と比べて、内部で連立一次方程式を解かなくていいというのが利点
+   *   - なので収束はニュートン法よりは遅くなる。
+   *   - ひょっとしたらニュートン法では解けなかったものが解けるというパターンもあるかもしれない。
+   *   - とはいえ、与える引数が同じならニュートン法の方がよさそう。
+   * @param fx 評価関数
+   * @param nx ナブラ（勾配）を計算する関数
+   * @param Hx ヘッセ行列を計算する関数
+   * @param[in,out] x 出力値。最初は初期値を入れておく。
+   */
+  int runConjugateGradient( double (*fx)( const std::vector< double > &),
+                            void (*nx)( const std::vector< double > &,
+                                        std::vector< double > & ),
+                            void (*Hx)( const std::vector< double > &,
+                                        std::vector< std::vector< double > > & ),
+                            std::vector< double > &x ){
+    using namespace std;
+
+    // 初期化、諸変数
+    bool is_converged = false;
+    int itr_count = 0;
+    int n = x.size();
+    vector< double > n_x( n ), dx( n ), m_k1( n, 0 );
+    vector< vector< double > > H_x( n, vector< double >( n ) );
+    double a_k = 0;
+    
+    // 反復処理
+    for( itr_count = 0; itr_count < _max_itr_count; itr_count++ ){
+      
+      // 現在位置での勾配
+      nx( x, n_x );
+      
+      // 現在位置でのヘッセ
+      Hx( x, H_x );
+
+      // 共役勾配方向の計算
+      if( itr_count > 0 ){
+        double a1 = MyVecDot( m_k1, H_x * n_x );
+        double a2 = MyVecDot( m_k1, H_x * m_k1 );
+        assert( a2 != 0 );
+        a_k = - a1 / a2;
+      }
+      m_k1 = n_x + a_k * m_k1;
+
+      // 直線検索
+      double t = 0;
+      assert( ! runLineSearch( fx, x, m_k1, &t ) );
+
+      // 移動量
+      dx = t * m_k1;
+      _cur_error = MyVecNorm( dx );
+
+      // 値の更新
+      x = x + dx;
+      
+      if( _dout ){
+        if( itr_count == 0 ) *_dout << "--- ConjugateGradient ---" << endl;
+        *_dout << "[" << itr_count << "]\t x: " << x << "\t m_k1: " << m_k1 << "\t |dx|: " << _cur_error << endl;
+      }
+
+      // 収束判定
+      if( _cur_error < _error_thres ){
+        is_converged = true;
+        break;
+      }
+      
+    }// for
+
+    // 終了処理
+    _is_converged = is_converged;
+    _itr_count = itr_count;
+    
+    return 0;
+  } 
+
+  /**
+   * 共役勾配法
+   * - ナブラとヘッセを数値微分で計算するバージョン
+   * @param fx 評価関数
+   * @param[in,out] x 出力値。最初は初期値を入れておく。
+   */
+  int runConjugateGradient( double (*fx)( const std::vector< double > &),
+                            std::vector< double > &x ){
+    using namespace std;
+
+    // 初期化、諸変数
+    bool is_converged = false;
+    int itr_count = 0;
+    int n = x.size();
+    vector< double > n_x( n ), dx( n ), m_k1( n, 0 );
+    vector< vector< double > > H_x( n, vector< double >( n ) );
+    double a_k = 0;
+    
+    // 反復処理
+    for( itr_count = 0; itr_count < _max_itr_count; itr_count++ ){
+      
+      // 現在位置での勾配
+      MyVecGrad( fx, x, n_x );
+      
+      // 現在位置でのヘッセ
+      MyMatHessian( fx, x, H_x );
+
+      // 共役勾配方向の計算
+      if( itr_count > 0 ){
+        double a1 = MyVecDot( m_k1, H_x * n_x );
+        double a2 = MyVecDot( m_k1, H_x * m_k1 );
+        assert( a2 != 0 );
+        a_k = - a1 / a2;
+      }
+      m_k1 = n_x + a_k * m_k1;
+
+      // 直線検索
+      double t = 0;
+      assert( ! runLineSearch( fx, x, m_k1, &t ) );
+
+      // 移動量
+      dx = t * m_k1;
+      _cur_error = MyVecNorm( dx );
+
+      // 値の更新
+      x = x + dx;
+      
+      if( _dout ){
+        if( itr_count == 0 ) *_dout << "--- ConjugateGradient ---" << endl;
+        *_dout << "[" << itr_count << "]\t x: " << x << "\t m_k1: " << m_k1 << "\t |dx|: " << _cur_error << endl;
+      }
+
+      // 収束判定
+      if( _cur_error < _error_thres ){
+        is_converged = true;
+        break;
+      }
+      
+    }// for
+
+    // 終了処理
+    _is_converged = is_converged;
+    _itr_count = itr_count;
+    
+    return 0;
+  }
+  
+  /**
+   * 準ニュートン法
+   * - 関数 double fx( const vector< double > &x ) の値を最小にする入力 x を求める
+   * @param fx 評価関数
+   * @param[in,out] x 出力値。最初は初期値を入れておく。
+   */
+  int runQuasiNewton( double (*fx)( const std::vector< double > &),
+                      std::vector< double > &x ){
+    using namespace std;
+    
+    // 初期化、諸変数
+    bool is_converged = false;
+    int itr_count = 0;
+    int n = x.size();
+    vector< double > n_x( n ), n_x_new( n ), dx( n );
+    vector< vector< double > > I = MyMatIdentity< double >( n );
+    vector< vector< double > > Bk = MyMatIdentity< double >( n );
+
+    // 反復処理
+    for( itr_count = 0; itr_count < _max_itr_count; itr_count++ ){
+
+      // この位置での勾配
+      MyVecGrad( fx, x, n_x );
+    
+      // 探索方向
+      dx = -1.0 * ( Bk * n_x );
+
+      // 直線探索
+      double t = 0;
+      assert( ! runLineSearch( fx, x, dx, &t ) );
+
+      // 値の更新
+      dx = t * dx;
+      x = x + dx;
+
+      // 収束判定評価値
+      _cur_error = MyVecNorm( dx );
+
+      if( _dout ){
+        if( itr_count == 0 ) *_dout << "--- QuasiNewton ---" << endl;
+        *_dout << "[" << itr_count << "] " << x << " ";
+        *_dout << "n_x: " << n_x << " Bk: " << Bk << " t:" << t << " "; 
+        *_dout << "|dx|: " << _cur_error << endl;
+      }
+      
+      // 収束判定
+      if( _cur_error < _error_thres ){
+        is_converged = true;
+        break;
+      }
+
+      // Bk の更新
+      MyVecGrad( fx, x, n_x_new );
+      vector< double > yk = n_x_new - n_x;
+      double a = MyVecDot( yk, dx );
+      assert( a != 0 );
+      double b = 1.0 / a;
+      vector< vector< double > > A = I - b * ( MyVec2Mat( yk ) * MyVecTrans( dx ) );
+      Bk = MyMatTrans( A ) * Bk * A + b * ( MyVec2Mat( dx ) * MyVecTrans( dx ) );
+      
+    }
+    
+    // 終了処理
+    _is_converged = is_converged;
+    _itr_count = itr_count;
+
+    return 0;
+  }
+  
+  /**
+   * ガウス・ニュートン法
+   * - 二乗和の形で表現された評価関数 J = f1(x)^2 + f2(x)^2 + ... の値を最小する入力 x を求める。
+   * - 非線形最小二乗法
+   * - 評価関数 f1, f2, ..., を vector 配列で渡す
+   * - 各評価関数の勾配（ナブラ）は内部で数値微分で計算される
+   * @param vfx 評価関数の配列
+   * @param[in,out] x 出力値。最初は初期値を入れておく。
+   */
+  typedef double (*vec_func_type)( const std::vector< double > & );
+  int runGaussNewton( const std::vector< vec_func_type > &vfx,
+                      std::vector< double > &x ){
+    using namespace std;
+
+    // 初期化、諸変数
+    _is_converged = false;
+    
+    // 反復処理
+    for( _itr_count = 0; _itr_count < _max_itr_count; _itr_count++ ){
+
+      int n = vfx.size();
+      vector< double > nf = MyVecZero< double >( n );
+      vector< vector< double > > H = MyMatZero< double >( n );
+
+      for( int i = 0; i < n; i++ ){
+        vector< double > nx( n );
+        MyVecGrad( vfx[ i ], x, nx );
+        nf = nf - vfx[ i ]( x ) * nx;
+        H = H + MyVec2Mat( nx ) * MyVecTrans( nx );
+      }
+
+      // 連立一次方程式を解く
+      vector< double > dx;
+      assert( ! MyLUSolve( H, dx, nf ) );
+
+      // 移動
+      x = x + dx;
+
+      // 収束判定評価値
+      _cur_error = MyVecNorm( dx );
+      
+      if( _dout ){
+        if( _itr_count == 0 ) *_dout << "--- GaussNewton ---" << endl;
+        *_dout << "[" << _itr_count << "] " << x << " ";
+        *_dout << "nf: " << nf << " H: " << H << " ";
+        *_dout << "|dx|: " << _cur_error << endl;
+      }
+
+      // 収束判定
+      if( _cur_error < _error_thres ){
+        _is_converged = true;
+        break;
+      }
+    }
+    
+    return 0;
+  }
+  
+  /**
+   * レーベンバーグ・マーカート法
+   * - 二乗和の形で表現された評価関数 J = f1(x)^2 + f2(x)^2 + ... の値を最小する入力 x を求める。
+   * - 非線形最小二乗法
+   * - 評価関数 f1, f2, ..., を vector 配列で渡す
+   * - 各評価関数の勾配（ナブラ）は内部で数値微分で計算される。
+   * - ガウス・ニュートン法でよい解が得られない場合に使うらしい。
+   * @param vfx 評価関数の配列
+   * @param[in,out] x 出力値。最初は初期値を入れておく。
+   */
+  int runLevenbergMarquardt( const std::vector< vec_func_type > &vfx,
+                             std::vector< double > &x ){
+    using namespace std;
+
+    // 初期化、諸変数
+    _is_converged = false;
+    int n = vfx.size();
+    double c = 0.0001;
+
+    // スタート時点での評価関数の値
+    double J = 0;
+    for( int i = 0; i < n; i++ ){
+      double a = vfx[ i ]( x );
+      J += a * a;
+    }
+
+    // 反復処理
+    for( _itr_count = 0; _itr_count < _max_itr_count; _itr_count++ ){
+
+      vector< double > nf = MyVecZero< double >( n );
+      vector< vector< double > > H = MyMatZero< double >( n );
+      vector< vector< double > > I = MyMatIdentity< double >( n );
+
+      // ここはガウス・ニュートン法と同じ
+      for( int i = 0; i < n; i++ ){
+        vector< double > nx( n );
+        MyVecGrad( vfx[ i ], x, nx );
+        nf = nf - vfx[ i ]( x ) * nx;
+        H = H + MyVec2Mat( nx ) * MyVecTrans( nx );
+      }
+
+      vector< double > dx;
+
+      const int MAX_ITR_COUNT2 = 100;
+      for( int k = 0; k < MAX_ITR_COUNT2; k++ ){
+
+        // ヘッセ行列を少し変える
+        // c が大きいと勾配法に近づく。
+        // c が小さいとガウスニュートン法に近づく。
+        H = H + c * I;
+      
+        // 連立一次方程式を解く
+        dx.clear();
+        assert( ! MyLUSolve( H, dx, nf ) );
+
+        // 新しい位置に移動
+        vector< double > x2 = x + dx;
+
+        // 新しい位置での評価関数の値を計算
+        double J2 = 0;
+        for( int i = 0; i < n; i++ ){
+          double a = vfx[ i ]( x2 );
+          J2 += a * a;
+        }
+
+        // 値がまだ大きければ
+        if( J2 > J ){
+          // 勾配法に近づける＆より大きく進む
+          c *= 10;
+        }
+        else{
+          // ガウスニュートン法に近づける＆より小さく進む
+          c *= 0.1;
+          J = J2;
+          x = x2;
+          break;
+        }
+      }//k
+
+      // 収束判定評価値
+      _cur_error = MyVecNorm( dx );
+      
+      if( _dout ){
+        if( _itr_count == 0 ) *_dout << "--- LevenbergMarquardt ---" << endl;
+        *_dout << "[" << _itr_count << "] " << x << " ";
+        *_dout << "nf: " << nf << " c: " << c << " H: " << H << " ";
+        *_dout << "|dx|: " << _cur_error << endl;
+      }
+
+      // 収束判定
+      if( _cur_error < _error_thres ){
+        _is_converged = true;
+        break;
+      }
+    }
+    
+    return 0;
+  }
+  
 };
 
 // 静的変数のインスタンス生成
