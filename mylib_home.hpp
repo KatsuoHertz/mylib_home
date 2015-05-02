@@ -1544,7 +1544,7 @@ MyGaussSeidelSolve( const std::vector< std::vector< double > > &A,
 /**
  * 各種最小化処理を行うクラス
  */
-class MyOptim {
+class MyMinSearch {
   double _error_thres; //!< 収束判定に使う閾値
   int _max_itr_count; //!< 繰り返し計算の打ち切り回数。
   std::ostream *_dout; //!< 画面表示などデバッグの際の表示先
@@ -1578,13 +1578,13 @@ class MyOptim {
   }
   
  public:
-  MyOptim() : _error_thres( 1E-6 ),
-              _max_itr_count( 10000 ),
-              _dout( 0 ),
-              _itr_count( 0 ),
-              _cur_error( 0 ),
-              _is_converged( false ),
-              _line_search_method_type( GoldenSection ) { };
+  MyMinSearch() : _error_thres( 1E-6 ),
+                  _max_itr_count( 10000 ),
+                  _dout( 0 ),
+                  _itr_count( 0 ),
+                  _cur_error( 0 ),
+                  _is_converged( false ),
+                  _line_search_method_type( GoldenSection ) { };
 
   void setErrorThres( double error_thres ) { _error_thres = error_thres; }
   void setMaxItrCount( int max_itr_count ) { _max_itr_count = max_itr_count; }
@@ -2744,9 +2744,9 @@ class MyOptim {
 };
 
 // 静的変数のインスタンス生成
-const std::vector< double > * MyOptim::_LineSearch_x;
-const std::vector< double > * MyOptim::_LineSearch_dx;
-double (*(MyOptim::_LineSearch_fx))( const std::vector< double > & );
+const std::vector< double > * MyMinSearch::_LineSearch_x;
+const std::vector< double > * MyMinSearch::_LineSearch_dx;
+double (*(MyMinSearch::_LineSearch_fx))( const std::vector< double > & );
 
 //#########################################################################################
 // 画像操作
