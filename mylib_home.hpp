@@ -1845,7 +1845,11 @@ class MyMinSearch {
         double rand_val = ( rand() / (double)RAND_MAX - 0.5 ) * 2;
         double size = MyAbs( x[ j ] * INIT_SMP_SIZE_PCT / 100.0 );
         double val = x[ j ] + rand_val * size;
-        if( x[ j ] == 0 ) val = INIT_SMP_SIZE_WHEN_ZERO;
+        //if( x[ j ] == 0 ) val = INIT_SMP_SIZE_WHEN_ZERO;
+        if( x[ j ] == 0 ){
+          size = MyAbs( INIT_SMP_SIZE_WHEN_ZERO * INIT_SMP_SIZE_PCT / 100.0 );
+          val = INIT_SMP_SIZE_WHEN_ZERO + rand_val * size;
+        }
         x_in.push_back( val );
       }
       x_out = fx( x_in );
@@ -2671,11 +2675,14 @@ class MyMinSearch {
     // 反復処理
     for( _itr_count = 0; _itr_count < _max_itr_count; _itr_count++ ){
 
-      int n = vfx.size();
+      //int n = vfx.size();
+      int m = vfx.size();
+      int n = x.size();
       vector< double > nf = MyVecZero< double >( n );
       vector< vector< double > > H = MyMatZero< double >( n );
 
-      for( int i = 0; i < n; i++ ){
+      //for( int i = 0; i < n; i++ ){
+      for( int i = 0; i < m; i++ ){
         vector< double > nx( n );
         MyVecGrad( vfx[ i ], x, nx );
         nf = nf - vfx[ i ]( x ) * nx;
@@ -2725,12 +2732,14 @@ class MyMinSearch {
 
     // 初期化、諸変数
     _is_converged = false;
-    int n = vfx.size();
+    int m = vfx.size();
+    int n = x.size();
     double c = 0.0001;
 
     // スタート時点での評価関数の値
     double J = 0;
-    for( int i = 0; i < n; i++ ){
+    //for( int i = 0; i < n; i++ ){
+    for( int i = 0; i < m; i++ ){
       double a = vfx[ i ]( x );
       J += a * a;
     }
@@ -2742,8 +2751,10 @@ class MyMinSearch {
       vector< vector< double > > H = MyMatZero< double >( n );
       vector< vector< double > > I = MyMatIdentity< double >( n );
 
+      // 現在位置での勾配とヘッセ行列を求める。
       // ここはガウス・ニュートン法と同じ
-      for( int i = 0; i < n; i++ ){
+      //for( int i = 0; i < n; i++ ){
+      for( int i = 0; i < m; i++ ){
         vector< double > nx( n );
         MyVecGrad( vfx[ i ], x, nx );
         nf = nf - vfx[ i ]( x ) * nx;
@@ -2755,7 +2766,7 @@ class MyMinSearch {
       const int MAX_ITR_COUNT2 = 100;
       for( int k = 0; k < MAX_ITR_COUNT2; k++ ){
 
-        // ヘッセ行列を少し変える
+        // ヘッセ行列を修正しながら探索。
         // c が大きいと勾配法に近づく。
         // c が小さいとガウスニュートン法に近づく。
         H = H + c * I;
@@ -2769,7 +2780,8 @@ class MyMinSearch {
 
         // 新しい位置での評価関数の値を計算
         double J2 = 0;
-        for( int i = 0; i < n; i++ ){
+        //for( int i = 0; i < n; i++ ){
+        for( int i = 0; i < m; i++ ){
           double a = vfx[ i ]( x2 );
           J2 += a * a;
         }
