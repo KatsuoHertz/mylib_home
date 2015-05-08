@@ -16,7 +16,7 @@ namespace my
 {
 
 // バージョン
-const char *VERSION = "2015.5.2";
+const char *VERSION = "2015.5.9";
 
 // --- 目次 ---
 // 1. 便利クラス、便利関数
@@ -1562,6 +1562,14 @@ class MyMinSearch {
     DownhillSimplex
   } LineSearchMethodType;
 
+  /**
+   * デバッグ表示のときに使うオプション
+   */
+  typedef enum {
+    OutAll = 0,
+    OutCounterOnly
+  } DebugOutType;
+
  private:
 
   LineSearchMethodType _line_search_method_type; //<! 直線検索で使う１変数関数の最小化アルゴリズム
@@ -1576,6 +1584,7 @@ class MyMinSearch {
     assert( t.size() > 0 );
     return _LineSearch_fx( (*_LineSearch_x) + t[0] * (*_LineSearch_dx) );
   }
+  DebugOutType _dout_type; //!< デバッグ出力の際の表示オプション
   
  public:
   MyMinSearch() : _error_thres( 1E-6 ),
@@ -1584,12 +1593,13 @@ class MyMinSearch {
                   _itr_count( 0 ),
                   _cur_error( 0 ),
                   _is_converged( false ),
-                  _line_search_method_type( GoldenSection ) { };
+                  _line_search_method_type( GoldenSection ),
+                  _dout_type( OutAll ) { };
 
   void setErrorThres( double error_thres ) { _error_thres = error_thres; }
   void setMaxItrCount( int max_itr_count ) { _max_itr_count = max_itr_count; }
-  void setDebugOut( std::ostream *stream ) { _dout = stream; };
   void setLineSearchMethod( LineSearchMethodType type ) { _line_search_method_type = type; }
+  void setDebugOut( std::ostream *stream, DebugOutType type = OutAll ) { _dout = stream; _dout_type = type; };
   
   double getErrorThres() const { return _error_thres; }
   int getMaxItrCount() const { return _max_itr_count; }
@@ -1622,7 +1632,7 @@ class MyMinSearch {
     // 内分比（黄金比）
     const double tau = ( sqrt( 5 ) - 1 ) / 2.0;
 
-    if( _dout ){
+    if( _dout && _dout_type == OutAll ){
       *_dout << "--- GoldenSection ---" << endl;
       *_dout << "a:\t" << *a << endl;
       *_dout << "b:\t" << *b << endl;
@@ -1639,7 +1649,7 @@ class MyMinSearch {
       double f1 = fx( t1 );
       double f2 = fx( t2 );
     
-      if( _dout ){
+      if( _dout && _dout_type == OutAll ){
         *_dout << "[" << _itr_count << "]\t";
         *_dout << "f(" << t1 << ") = " << f1 << ",\t";
         *_dout << "f(" << t2 << ") = " << f2 << endl;
@@ -1696,7 +1706,7 @@ class MyMinSearch {
     // 収束条件評価値
     _cur_error = MyAbs( gx_x );
     
-    if( _dout ){
+    if( _dout && _dout_type == OutAll ){
       *_dout << "--- GradientBased ---" << endl;
       *_dout << "[" << _itr_count << "]";
       *_dout << "\t f'(" << *x << ") = " << gx_x << endl;
@@ -1714,7 +1724,7 @@ class MyMinSearch {
       fx_X = fx( X );
       fx_Xd = fx( Xd );
     
-      if( _dout ){
+      if( _dout && _dout_type == OutAll ){
         *_dout << "\t f(" << *x << ") = " << fx_X << ",\t";
         *_dout << "f(" << *x << " + " << h << ") = " << fx_Xd << endl;
       }
@@ -1735,7 +1745,7 @@ class MyMinSearch {
           fx_X = fx( X );
           fx_Xd = fx( Xd );
         
-          if( _dout ){
+          if( _dout && _dout_type == OutAll ){
             *_dout << "\t f(" << X << ") = " << fx_X << ",\t";
             *_dout << "f(" << X << " + " << h << ") = " << fx_Xd << endl;
           }
@@ -1764,7 +1774,7 @@ class MyMinSearch {
           // 関数値の計算
           fx_Xd = fx( Xd );
         
-          if( _dout ){
+          if( _dout && _dout_type == OutAll ){
             *_dout << "\t f(" << X << ") = " << fx_X << ",\t";
             *_dout << "f(" << X << " + " << h << ") = " << fx_Xd << endl;
           }
@@ -1785,7 +1795,7 @@ class MyMinSearch {
       // 収束条件評価値
       _cur_error = MyAbs( gx_x );
     
-      if( _dout ){
+      if( _dout && _dout_type == OutAll ){
         *_dout << "[" << _itr_count << "]";
         *_dout << "\t f'(" << *x << ") = " << gx_x << endl;
       }
@@ -1813,7 +1823,9 @@ class MyMinSearch {
                           std::vector< double > &x ){
     using namespace std;
   
-    if( _dout ) *_dout << "--- DownhillSimplex ---" << endl;
+    if( _dout && _dout_type == OutAll ){
+      *_dout << "--- DownhillSimplex ---" << endl;
+    }
 
     // 収束フラグのクリア
     _is_converged = false;
@@ -1879,9 +1891,12 @@ class MyMinSearch {
       // その位置での関数値
       double f_min = (smp.begin())->first;
 
-      if( _dout ){
+      if( _dout && _dout_type == OutAll ){
         *_dout << "[" << _itr_count << "]\t f_min: " << f_min << endl;
         *_dout << "\t x_min: " << x_min << endl;
+      }
+      else if( _dout && _dout_type == OutCounterOnly ){
+        *_dout << "[" << _itr_count << "]" << endl;
       }
 
       // --- 収束判定 ---
@@ -1900,7 +1915,9 @@ class MyMinSearch {
       }
       smp_size /= (double)( smp.size() );
     
-      if( _dout ) *_dout << "\t smp_size: " << smp_size << endl;
+      if( _dout && _dout_type == OutAll ){
+        *_dout << "\t smp_size: " << smp_size << endl;
+      }
 
       // 誤差＝シンプレックスサイズ
       _cur_error = smp_size;
@@ -1911,7 +1928,7 @@ class MyMinSearch {
         break;
       }
 
-      if( _dout ){
+      if( _dout && _dout_type == OutAll ){
         *_dout << "\t simplex:" << endl;
         for( map_type::const_iterator it = smp.begin(); it != smp.end(); it++ ){
           *_dout << "\t\t" << it->first << "\t (" << it->second << ")" << endl;
@@ -1944,7 +1961,7 @@ class MyMinSearch {
       // 現在の（移動前の）関数の最大値
       f_max = fx( x_max );
     
-      if( _dout ){
+      if( _dout && _dout_type == OutAll ){
         *_dout << "\t Step.1:" << endl;
         *_dout << "\t\t x_c: " << x_c << endl;
         *_dout << "\t\t x_max: " << x_max << endl;
@@ -1984,7 +2001,7 @@ class MyMinSearch {
           smp.insert( make_pair< double, vector< double > >( f_exp, x_exp ) );
         }
 
-        if( _dout ){
+        if( _dout && _dout_type == OutAll ){
           *_dout << "\t Step.2:" << endl;
           *_dout << "\t\t x_exp: " << x_exp << endl;
           *_dout << "\t\t f_ref: " << f_ref << "\t f_exp: " << f_exp << endl;
@@ -2018,7 +2035,7 @@ class MyMinSearch {
         double f_con;
         f_con = fx( x_con );
 
-        if( _dout ){
+        if( _dout && _dout_type == OutAll ){
           *_dout << "\t Step.3:" << endl;
           *_dout << "\t\t x_con: " << x_con << endl;
           *_dout << "\t\t f_con: " << f_con << endl;
@@ -2042,7 +2059,7 @@ class MyMinSearch {
           // 縮小先の位置を頂点に加える
           smp.insert( make_pair< double, vector< double > >( f_con, x_con ) );
         
-          if( _dout ){
+          if( _dout && _dout_type == OutAll ){
             *_dout << "\t\t x_max(" << x_max << ") ---> x_con(" << x_con << ")" << endl;
           }
 
@@ -2076,7 +2093,7 @@ class MyMinSearch {
           // 新たに作ったシンプレックスと現在のシンプレックスを入れ替え
           smp.swap( smp_new );
 
-          if( _dout ){
+          if( _dout && _dout_type == OutAll ){
             *_dout << "\t Step.4" << endl;
             map_type::const_iterator it1 = smp_new.begin();
             map_type::const_iterator it2 = smp.begin();
@@ -2115,7 +2132,9 @@ class MyMinSearch {
                      double *out ){
     using namespace std;
 
-    if( _dout ) *_dout << "--- LineSearch ---" << endl;
+    if( _dout && _dout_type == OutAll ){
+      *_dout << "--- LineSearch ---" << endl;
+    }
 
     // F(t) = fx( x + t * dx ) のセットアップ
     _LineSearch_x = &x;
@@ -2135,13 +2154,14 @@ class MyMinSearch {
         {
           // --- 検索範囲を決める ---
           const double STEP = 0.00025; // いくつか適当かわからない。値が大きいほど局所解を巻き込みやすい。
-          const int MAX_ITR = 25;
+          //const int MAX_ITR = 25;
+          const int MAX_ITR = 100;
           double a = -STEP;
           double b = STEP;
           double fa = ft( a );
           double ff = ft( 0 );
           double fb = ft( b );
-          if( _dout ){
+          if( _dout && _dout_type == OutAll ){
             *_dout << "[init]\t";
             *_dout << "f(" << a << ") = " << fa << ",\t";
             *_dout << "f(0) = " << ff << ",\t";
@@ -2178,7 +2198,7 @@ class MyMinSearch {
             assert( fb > ff );
           }
           assert( fa > ff && ff < fb );
-          if( _dout ){
+          if( _dout && _dout_type == OutAll ){
             *_dout << "[start]\t";
             *_dout << "f(" << a << ") = " << fa << ",\t";
             *_dout << "f(0) = " << ff << ",\t";
@@ -2233,7 +2253,7 @@ class MyMinSearch {
       // 収束判定評価値
       _cur_error = MyVecNorm( dx );
       
-      if( _dout ){
+      if( _dout && _dout_type == OutAll ){
         if( itr_count == 1 ) *_dout << "--- SteepestDescent() ---" << endl;
         *_dout << "[" << itr_count << "] ";
         *_dout << "x: " << (x - dx) << " ";
@@ -2243,6 +2263,7 @@ class MyMinSearch {
         *_dout << "norm(dx): " << _cur_error << " ";
         *_dout << "x updated: " << x << endl;
       }
+      else if( _dout && _dout_type == OutCounterOnly ) *_dout << "[" << itr_count << "]"<< endl;
     
       // 終了判定
       if( _cur_error < _error_thres ){
@@ -2305,10 +2326,11 @@ class MyMinSearch {
       // 収束判定評価値
       _cur_error = MyVecNorm( dx );
       
-      if( _dout ){
+      if( _dout && _dout_type == OutAll ){
         if( _itr_count == 0 ) *_dout << "--- NewtonRaphson ---" << endl;
         *_dout << "[" << _itr_count << "]\t x: " << x << "\t |dx|: " << _cur_error << endl;
       }
+      else if( _dout && _dout_type == OutCounterOnly ) *_dout << "[" << _itr_count << "]"<< endl;
     
       // 収束判定
       if( _cur_error < _error_thres ){
@@ -2356,10 +2378,11 @@ class MyMinSearch {
       // 収束判定評価値
       _cur_error = MyVecNorm( dx );
       
-      if( _dout ){
+      if( _dout && _dout_type == OutAll ){
         if( _itr_count == 0 ) *_dout << "--- NewtonRaphson ---" << endl;
         *_dout << "[" << _itr_count << "]\t x: " << x << "\t |dx|: " << _cur_error << endl;
       }
+      else if( _dout && _dout_type == OutCounterOnly ) *_dout << "[" << _itr_count << "]"<< endl;
     
       // 収束判定
       if( _cur_error < _error_thres ){
@@ -2432,10 +2455,12 @@ class MyMinSearch {
       // 値の更新
       x = x + dx;
       
-      if( _dout ){
+      if( _dout && _dout_type == OutAll ){
         if( itr_count == 0 ) *_dout << "--- ConjugateGradient ---" << endl;
-        *_dout << "[" << itr_count << "]\t x: " << x << "\t a_k: " << a_k << "\t m_k1: " << m_k1 << "\t |dx|: " << _cur_error << endl;
+        *_dout << "[" << itr_count << "]\t x: " << x << "\t a_k: " << a_k
+               << "\t m_k1: " << m_k1 << "\t |dx|: " << _cur_error << endl;
       }
+      else if( _dout && _dout_type == OutCounterOnly ) *_dout << "[" << itr_count << "]"<< endl;
 
       // 収束判定
       if( _cur_error < _error_thres ){
@@ -2499,10 +2524,12 @@ class MyMinSearch {
       // 値の更新
       x = x + dx;
       
-      if( _dout ){
+      if( _dout && _dout_type == OutAll ){
         if( itr_count == 0 ) *_dout << "--- ConjugateGradient ---" << endl;
-        *_dout << "[" << itr_count << "]\t x: " << x << "\t a_k: " << a_k << "\t m_k1: " << m_k1 << "\t |dx|: " << _cur_error << endl;
+        *_dout << "[" << itr_count << "]\t x: " << x << "\t a_k: " << a_k
+               << "\t m_k1: " << m_k1 << "\t |dx|: " << _cur_error << endl;
       }
+      else if( _dout && _dout_type == OutCounterOnly ) *_dout << "[" << itr_count << "]"<< endl;
 
       // 収束判定
       if( _cur_error < _error_thres ){
@@ -2563,10 +2590,12 @@ class MyMinSearch {
       // 値の更新
       x = x + dx;
       
-      if( _dout ){
+      if( _dout && _dout_type == OutAll ){
         if( itr_count == 0 ) *_dout << "--- ConjugateGradient ---" << endl;
-        *_dout << "[" << itr_count << "]\t x: " << x << "\t a_k: " << a_k << "\t m_k1: " << m_k1 << "\t |dx|: " << _cur_error << endl;
+        *_dout << "[" << itr_count << "]\t x: " << x << "\t a_k: " << a_k
+               << "\t m_k1: " << m_k1 << "\t |dx|: " << _cur_error << endl;
       }
+      else if( _dout && _dout_type == OutCounterOnly ) *_dout << "[" << itr_count << "]"<< endl;
 
       // 収束判定
       if( _cur_error < _error_thres ){
@@ -2624,12 +2653,13 @@ class MyMinSearch {
       // 収束判定評価値
       _cur_error = MyVecNorm( dx );
 
-      if( _dout ){
+      if( _dout && _dout_type == OutAll ){
         if( itr_count == 0 ) *_dout << "--- QuasiNewton ---" << endl;
         *_dout << "[" << itr_count << "] " << x << " ";
         *_dout << "n_x: " << n_x << " Bk: " << Bk << " t:" << t << " "; 
         *_dout << "|dx|: " << _cur_error << endl;
       }
+      else if( _dout && _dout_type == OutCounterOnly ) *_dout << "[" << itr_count << "]"<< endl;
       
       // 収束判定
       if( _cur_error < _error_thres ){
@@ -2699,12 +2729,13 @@ class MyMinSearch {
       // 収束判定評価値
       _cur_error = MyVecNorm( dx );
       
-      if( _dout ){
+      if( _dout && _dout_type == OutAll ){
         if( _itr_count == 0 ) *_dout << "--- GaussNewton ---" << endl;
         *_dout << "[" << _itr_count << "] " << x << " ";
         *_dout << "nf: " << nf << " H: " << H << " ";
         *_dout << "|dx|: " << _cur_error << endl;
       }
+      else if( _dout && _dout_type == OutCounterOnly ) *_dout << "[" << _itr_count << "]"<< endl;
 
       // 収束判定
       if( _cur_error < _error_thres ){
@@ -2803,12 +2834,13 @@ class MyMinSearch {
       // 収束判定評価値
       _cur_error = MyVecNorm( dx );
       
-      if( _dout ){
+      if( _dout && _dout_type == OutAll ){
         if( _itr_count == 0 ) *_dout << "--- LevenbergMarquardt ---" << endl;
         *_dout << "[" << _itr_count << "] " << x << " ";
         *_dout << "nf: " << nf << " c: " << c << " H: " << H << " ";
         *_dout << "|dx|: " << _cur_error << endl;
       }
+      else if( _dout && _dout_type == OutCounterOnly ) *_dout << "[" << _itr_count << "]"<< endl;
 
       // 収束判定
       if( _cur_error < _error_thres ){
