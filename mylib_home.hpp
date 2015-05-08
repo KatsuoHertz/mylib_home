@@ -2477,83 +2477,82 @@ class MyMinSearch {
     return 0;
   } 
 
+  // /**
+  //  * 共役勾配法
+  //  * - ナブラとヘッセを数値微分で計算するバージョン
+  //  * @param fx 評価関数
+  //  * @param[in,out] x 出力値。最初は初期値を入れておく。
+  //  */
+  // int runConjugateGradient( double (*fx)( const std::vector< double > &),
+  //                           std::vector< double > &x ){
+  //   using namespace std;
+
+  //   // 初期化、諸変数
+  //   bool is_converged = false;
+  //   int itr_count = 0;
+  //   int n = x.size();
+  //   vector< double > n_x( n ), dx( n ), m_k1( n, 0 );
+  //   vector< vector< double > > H_x( n, vector< double >( n ) );
+  //   double a_k = 0;
+    
+  //   // 反復処理
+  //   for( itr_count = 0; itr_count < _max_itr_count; itr_count++ ){
+      
+  //     // 現在位置での勾配
+  //     MyVecGrad( fx, x, n_x );
+      
+  //     // 現在位置でのヘッセ
+  //     MyMatHessian( fx, x, H_x );
+
+  //     // 共役勾配方向の計算
+  //     if( itr_count > 0 ){
+  //       double a1 = MyVecDot( m_k1, H_x * n_x );
+  //       double a2 = MyVecDot( m_k1, H_x * m_k1 );
+  //       assert( a2 != 0 );
+  //       a_k = - a1 / a2;
+  //     }
+  //     m_k1 = n_x + a_k * m_k1;
+
+  //     // 直線検索
+  //     double t = 0;
+  //     assert( ! runLineSearch( fx, x, m_k1, &t ) );
+
+  //     // 移動量
+  //     dx = t * m_k1;
+  //     _cur_error = MyVecNorm( dx );
+
+  //     // 値の更新
+  //     x = x + dx;
+      
+  //     if( _dout && _dout_type == OutAll ){
+  //       if( itr_count == 0 ) *_dout << "--- ConjugateGradient ---" << endl;
+  //       *_dout << "[" << itr_count << "]\t x: " << x << "\t a_k: " << a_k
+  //              << "\t m_k1: " << m_k1 << "\t |dx|: " << _cur_error << endl;
+  //     }
+  //     else if( _dout && _dout_type == OutCounterOnly ) *_dout << "[" << itr_count << "]"<< endl;
+
+  //     // 収束判定
+  //     if( _cur_error < _error_thres ){
+  //       is_converged = true;
+  //       break;
+  //     }
+      
+  //   }// for
+
+  //   // 終了処理
+  //   _is_converged = is_converged;
+  //   _itr_count = itr_count;
+    
+  //   return 0;
+  // }
+  
   /**
    * 共役勾配法
-   * - ナブラとヘッセを数値微分で計算するバージョン
+   * - ナブラを数値微分、ヘッセをビール・ソレンソンの式で近似するバージョン
    * @param fx 評価関数
    * @param[in,out] x 出力値。最初は初期値を入れておく。
    */
   int runConjugateGradient( double (*fx)( const std::vector< double > &),
-                            std::vector< double > &x ){
-    using namespace std;
-
-    // 初期化、諸変数
-    bool is_converged = false;
-    int itr_count = 0;
-    int n = x.size();
-    vector< double > n_x( n ), dx( n ), m_k1( n, 0 );
-    vector< vector< double > > H_x( n, vector< double >( n ) );
-    double a_k = 0;
-    
-    // 反復処理
-    for( itr_count = 0; itr_count < _max_itr_count; itr_count++ ){
-      
-      // 現在位置での勾配
-      MyVecGrad( fx, x, n_x );
-      
-      // 現在位置でのヘッセ
-      MyMatHessian( fx, x, H_x );
-
-      // 共役勾配方向の計算
-      if( itr_count > 0 ){
-        double a1 = MyVecDot( m_k1, H_x * n_x );
-        double a2 = MyVecDot( m_k1, H_x * m_k1 );
-        assert( a2 != 0 );
-        a_k = - a1 / a2;
-      }
-      m_k1 = n_x + a_k * m_k1;
-
-      // 直線検索
-      double t = 0;
-      assert( ! runLineSearch( fx, x, m_k1, &t ) );
-
-      // 移動量
-      dx = t * m_k1;
-      _cur_error = MyVecNorm( dx );
-
-      // 値の更新
-      x = x + dx;
-      
-      if( _dout && _dout_type == OutAll ){
-        if( itr_count == 0 ) *_dout << "--- ConjugateGradient ---" << endl;
-        *_dout << "[" << itr_count << "]\t x: " << x << "\t a_k: " << a_k
-               << "\t m_k1: " << m_k1 << "\t |dx|: " << _cur_error << endl;
-      }
-      else if( _dout && _dout_type == OutCounterOnly ) *_dout << "[" << itr_count << "]"<< endl;
-
-      // 収束判定
-      if( _cur_error < _error_thres ){
-        is_converged = true;
-        break;
-      }
-      
-    }// for
-
-    // 終了処理
-    _is_converged = is_converged;
-    _itr_count = itr_count;
-    
-    return 0;
-  }
-  
-  /**
-   * 共役勾配法
-   * - ヘッセをビール・ソレンソンの式で近似するバージョン
-   * - 内部でヘッセの計算を必要としない。（のでより安定が見込める？）
-   * @param fx 評価関数
-   * @param[in,out] x 出力値。最初は初期値を入れておく。
-   */
-  int runConjugateGradient2( double (*fx)( const std::vector< double > &),
                              std::vector< double > &x ){
     using namespace std;
 
