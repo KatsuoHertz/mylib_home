@@ -1,3 +1,9 @@
+/**
+ * @file mylib_home.hpp
+ * @brief 各種便利関数、クラス
+ * @version 2015.5.9
+ */
+
 #ifndef MYLIB_HPP
 #define MYLIB_HPP
 
@@ -14,9 +20,6 @@
 
 namespace my
 {
-
-// バージョン
-const char *VERSION = "2015.5.9";
 
 // --- 目次 ---
 // 1. 便利クラス、便利関数
