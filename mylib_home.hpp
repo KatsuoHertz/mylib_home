@@ -1,11 +1,11 @@
 /**
  * @file mylib_home.hpp
  * @brief 各種便利関数、クラス
- * @version 2015.5.9
+ * @version 2015.5.16
  */
 
-#ifndef MYLIB_HPP
-#define MYLIB_HPP
+#ifndef MYLIB_HOME_HPP
+#define MYLIB_HOME_HPP
 
 #include <iostream>
 #include <fstream>
@@ -16,7 +16,9 @@
 #include <stack>
 #include <cassert>
 #include <cstdlib>
+#include <cmath>
 #include <cv.h>
+#include <highgui.h>
 
 namespace my
 {
@@ -1204,17 +1206,30 @@ MyFitCubic( const std::vector< double > &data_x,
   return 0;
 }
 
+// /**
+//  * 乱数生成
+//  * - 平均 mu、分散 sg2 の正規分布で分布する乱数を発生する。 
+//  */
+// double MyRandGauss( double mu, double sg2 ){
+//   using namespace std;
+//   // Box-Muller's Method
+//   double X = rand() / (double)RAND_MAX;
+//   double Y = rand() / (double)RAND_MAX;
+//   double Z1 = sqrt( sg2 ) * sqrt( -2 * log( X ) ) * cos( 2 * M_PI * Y ) + mu;
+//   //double Z2 = sqrt( sg2 ) * sqrt( -2 * log( X ) ) * sin( 2 * M_PI * Y ) + mu;
+//   return Z1;
+// }
+
 /**
  * 乱数生成
- * - 平均 mu、分散 sg2 の正規分布で分布する乱数を発生する。 
+ * - 平均 mu、標準偏差 sg の正規分布で分布する乱数を発生する。 
  */
-double MyRandGauss( double mu, double sg2 ){
+double MyRandGauss( double mu, double sg ){
   using namespace std;
   // Box-Muller's Method
   double X = rand() / (double)RAND_MAX;
   double Y = rand() / (double)RAND_MAX;
-  double Z1 = sqrt( sg2 ) * sqrt( -2 * log( X ) ) * cos( 2 * M_PI * Y ) + mu;
-  //double Z2 = sqrt( sg2 ) * sqrt( -2 * log( X ) ) * sin( 2 * M_PI * Y ) + mu;
+  double Z1 = sg * sqrt( -2 * log( X ) ) * cos( 2 * M_PI * Y ) + mu;
   return Z1;
 }
 
@@ -1588,16 +1603,23 @@ class MyMinSearch {
     return _LineSearch_fx( (*_LineSearch_x) + t[0] * (*_LineSearch_dx) );
   }
   DebugOutType _dout_type; //!< デバッグ出力の際の表示オプション
+
+  /**
+   * 繰り返し計算前の初期化
+   */
+  void init() {
+    _itr_count = 0;
+    _cur_error = 0;
+    _is_converged = false;
+  }
   
  public:
   MyMinSearch() : _error_thres( 1E-6 ),
                   _max_itr_count( 10000 ),
-                  _dout( 0 ),
-                  _itr_count( 0 ),
-                  _cur_error( 0 ),
-                  _is_converged( false ),
                   _line_search_method_type( GoldenSection ),
-                  _dout_type( OutAll ) { };
+                  _dout( 0 ), _dout_type( OutAll ){
+    init();
+  };
 
   void setErrorThres( double error_thres ) { _error_thres = error_thres; }
   void setMaxItrCount( int max_itr_count ) { _max_itr_count = max_itr_count; }
@@ -1629,8 +1651,8 @@ class MyMinSearch {
                         double *out ){
     using namespace std;
 
-    // 収束フラグのクリア
-    _is_converged = false;
+    // 初期化
+    init();
     
     // 内分比（黄金比）
     const double tau = ( sqrt( 5 ) - 1 ) / 2.0;
@@ -1693,8 +1715,8 @@ class MyMinSearch {
     const double INIT_STEP_WHEN_ZERO = 0.00025; // 初期値がゼロだった場合の最初の移動量。
     const double MAX_ITR_NUM2 = 100; // 内部の while 文での最大繰り返し数。
 
-    // 収束フラグのクリア
-    _is_converged = false;
+    // 初期化
+    init();
     
     // 初期値のセット
     double h = (*x) * INIT_STEP_PCT / 100.0;
@@ -1826,13 +1848,6 @@ class MyMinSearch {
                           std::vector< double > &x ){
     using namespace std;
   
-    if( _dout && _dout_type == OutAll ){
-      *_dout << "--- DownhillSimplex ---" << endl;
-    }
-
-    // 収束フラグのクリア
-    _is_converged = false;
-    
     // 固定パラメータ
     const double ALPHA = 1; // 反射の大きさ
     const double GAMMA = 2; // 拡張の大きさ
@@ -1841,6 +1856,13 @@ class MyMinSearch {
     const double INIT_SMP_SIZE_PCT = 5; // 初期値の何％の範囲でシンプレックスを生成するか
     const double INIT_SMP_SIZE_WHEN_ZERO = 0.00025; // 上記で初期値がゼロだった場合に代わりに使う値
   
+    // 初期化
+    init();
+    
+    if( _dout && _dout_type == OutAll ){
+      *_dout << "--- DownhillSimplex ---" << endl;
+    }
+
     // シンプレックス
     typedef multimap< double, vector< double > > map_type;
     map_type smp;
@@ -2157,7 +2179,6 @@ class MyMinSearch {
         {
           // --- 検索範囲を決める ---
           const double STEP = 0.00025; // いくつか適当かわからない。値が大きいほど局所解を巻き込みやすい。
-          //const int MAX_ITR = 25;
           const int MAX_ITR = 100;
           double a = -STEP;
           double b = STEP;
@@ -2234,9 +2255,17 @@ class MyMinSearch {
                           std::vector< double > &x ){
     using namespace std;
 
-    // 内部で最小化関数を呼ぶので、以下の変数は自分で保持
+    // 初期化
+    init();
+
+    // 収束したかどうか（繰り返し計算内部で別メソッドを呼び出す関係で自分で保持）
     bool is_converged = false;
+
+    // 繰り返し計算回数（これも別途保持）
     int itr_count = 0;
+
+    // 現時点での評価値
+    //double fx_val = fx( x );
 
     // 探索処理
     for( itr_count = 0; itr_count < _max_itr_count; itr_count++ ){
@@ -2254,8 +2283,13 @@ class MyMinSearch {
       x = x + dx;
 
       // 収束判定評価値
+      // １）移動量
       _cur_error = MyVecNorm( dx );
-      
+      // ２）評価値の変化量
+      // double fx_val_new = fx( x );
+      // _cur_error = MyAbs( fx_val_new - fx_val );
+      // fx_val = fx_val_new;
+
       if( _dout && _dout_type == OutAll ){
         if( itr_count == 1 ) *_dout << "--- SteepestDescent() ---" << endl;
         *_dout << "[" << itr_count << "] ";
@@ -2304,12 +2338,21 @@ class MyMinSearch {
                         std::vector< double > &x ){
     using namespace std;
 
-    // 初期化、諸変数
-    _is_converged = false;
+    // 初期化
+    init();
+
+    // 変数の次元数
     int n = x.size();
+
+    // 勾配ベクトル、変数の移動量
     vector< double > n_x( n ), dx( n );
+
+    // ヘッセ行列
     vector< vector< double > > H_x( n, vector< double >( n ) );
   
+    // 現時点での評価値
+    //double fx_val = fx( x );
+
     // 反復処理
     for( _itr_count = 0; _itr_count < _max_itr_count; _itr_count++ ){
 
@@ -2327,7 +2370,12 @@ class MyMinSearch {
       x = x + dx;
 
       // 収束判定評価値
+      // １）移動量
       _cur_error = MyVecNorm( dx );
+      // ２）評価値の変化量
+      // double fx_val_new = fx( x );
+      // _cur_error = MyAbs( fx_val_new - fx_val );
+      // fx_val = fx_val_new;
       
       if( _dout && _dout_type == OutAll ){
         if( _itr_count == 0 ) *_dout << "--- NewtonRaphson ---" << endl;
@@ -2356,12 +2404,21 @@ class MyMinSearch {
                         std::vector< double > &x ){
     using namespace std;
 
-    // 初期化、諸変数
-    _is_converged = false;
+    // 初期化
+    init();
+
+    // 変数の次元数
     int n = x.size();
+
+    // 勾配ベクトル、変数の移動量
     vector< double > n_x( n ), dx( n );
+
+    // ヘッセ行列
     vector< vector< double > > H_x( n, vector< double >( n ) );
   
+    // 現時点での評価値
+    //double fx_val = fx( x );
+
     // 反復処理
     for( _itr_count = 0; _itr_count < _max_itr_count; _itr_count++ ){
 
@@ -2379,7 +2436,12 @@ class MyMinSearch {
       x = x + dx;
 
       // 収束判定評価値
+      // １）移動量
       _cur_error = MyVecNorm( dx );
+      // ２）評価値の変化量
+      // double fx_val_new = fx( x );
+      // _cur_error = MyAbs( fx_val_new - fx_val );
+      // fx_val = fx_val_new;
       
       if( _dout && _dout_type == OutAll ){
         if( _itr_count == 0 ) *_dout << "--- NewtonRaphson ---" << endl;
@@ -2421,14 +2483,33 @@ class MyMinSearch {
                             std::vector< double > &x ){
     using namespace std;
 
-    // 初期化、諸変数
+    // 初期化
+    init();
+
+    // 収束フラグ
     bool is_converged = false;
+
+    // 繰り返し計算回数カウンタ
     int itr_count = 0;
+
+    // 変数の次元数
     int n = x.size();
-    vector< double > n_x( n ), dx( n ), m_k1( n, 0 );
+
+    // 勾配ベクトル、移動量、
+    vector< double > n_x( n ), dx( n );
+
+    // ヘッセ行列
     vector< vector< double > > H_x( n, vector< double >( n ) );
+
+    // 共役勾配方向
+    vector< double > m_k1( n, 0 );
+
+    // 係数
     double a_k = 0;
     
+    // 現時点での評価値
+    //double fx_val = fx( x );
+
     // 反復処理
     for( itr_count = 0; itr_count < _max_itr_count; itr_count++ ){
       
@@ -2453,11 +2534,18 @@ class MyMinSearch {
 
       // 移動量
       dx = t * m_k1;
-      _cur_error = MyVecNorm( dx );
 
       // 値の更新
       x = x + dx;
       
+      // 収束判定評価値
+      // １）移動量
+      _cur_error = MyVecNorm( dx );
+      // ２）評価値の変化量
+      // double fx_val_new = fx( x );
+      // _cur_error = MyAbs( fx_val_new - fx_val );
+      // fx_val = fx_val_new;
+
       if( _dout && _dout_type == OutAll ){
         if( itr_count == 0 ) *_dout << "--- ConjugateGradient ---" << endl;
         *_dout << "[" << itr_count << "]\t x: " << x << "\t a_k: " << a_k
@@ -2559,12 +2647,35 @@ class MyMinSearch {
                              std::vector< double > &x ){
     using namespace std;
 
-    // 初期化、諸変数
+    // 初期化
+    init();
+
+    // 収束フラグ
     bool is_converged = false;
+
+    // 繰り返し計算回数カウンタ
     int itr_count = 0;
+
+    // 変数の次元数
     int n = x.size();
-    vector< double > n_x( n ), n_x_last( n ), dx( n ), m_k1( n, 0 );
+
+    // 勾配ベクトル、移動量、
+    vector< double > n_x( n ), dx( n );
+
+    // ヘッセ行列
+    vector< vector< double > > H_x( n, vector< double >( n ) );
+
+    // 共役勾配方向
+    vector< double > m_k1( n, 0 );
+
+    // 係数
     double a_k = 0;
+
+    // 現時点での評価値
+    //double fx_val = fx( x );
+
+    // 前ステップでの勾配ベクトル
+    vector< double > n_x_last( n );
     
     // 反復処理
     for( itr_count = 0; itr_count < _max_itr_count; itr_count++ ){
@@ -2587,11 +2698,18 @@ class MyMinSearch {
 
       // 移動量
       dx = t * m_k1;
-      _cur_error = MyVecNorm( dx );
 
       // 値の更新
       x = x + dx;
       
+      // 収束判定評価値
+      // １）移動量
+      _cur_error = MyVecNorm( dx );
+      // ２）評価値の変化量
+      // double fx_val_new = fx( x );
+      // _cur_error = MyAbs( fx_val_new - fx_val );
+      // fx_val = fx_val_new;
+
       if( _dout && _dout_type == OutAll ){
         if( itr_count == 0 ) *_dout << "--- ConjugateGradient ---" << endl;
         *_dout << "[" << itr_count << "]\t x: " << x << "\t a_k: " << a_k
@@ -2626,14 +2744,31 @@ class MyMinSearch {
   int runQuasiNewton( double (*fx)( const std::vector< double > &),
                       std::vector< double > &x ){
     using namespace std;
-    
-    // 初期化、諸変数
+
+    // 初期化
+    init();
+
+    // 収束判定フラグ
     bool is_converged = false;
+
+    // 繰り返し計算回数のカウンター
     int itr_count = 0;
+
+    // 変数の次元数
     int n = x.size();
-    vector< double > n_x( n ), n_x_new( n ), dx( n );
+
+    // 勾配ベクトル、移動量
+    vector< double > n_x( n ), dx( n );
+
+    // 更新後の勾配ベクトル
+    vector< double > n_x_new( n );
+
+    // ヘッセの近似に使う行列
     vector< vector< double > > I = MyMatIdentity< double >( n );
     vector< vector< double > > Bk = MyMatIdentity< double >( n );
+
+    // 現時点での評価値
+    // double fx_val = fx( x );
 
     // 反復処理
     for( itr_count = 0; itr_count < _max_itr_count; itr_count++ ){
@@ -2648,12 +2783,19 @@ class MyMinSearch {
       double t = 0;
       assert( ! runLineSearch( fx, x, dx, &t ) );
 
-      // 値の更新
+      // 移動量
       dx = t * dx;
+
+      // 値の更新
       x = x + dx;
 
       // 収束判定評価値
+      // １）移動量
       _cur_error = MyVecNorm( dx );
+      // ２）評価値の変化量
+      // double fx_val_new = fx( x );
+      // _cur_error = MyAbs( fx_val_new - fx_val );
+      // fx_val = fx_val_new;
 
       if( _dout && _dout_type == OutAll ){
         if( itr_count == 0 ) *_dout << "--- QuasiNewton ---" << endl;
@@ -2701,19 +2843,18 @@ class MyMinSearch {
                       std::vector< double > &x ){
     using namespace std;
 
-    // 初期化、諸変数
-    _is_converged = false;
+    // 初期化
+    init();
     
+    int m = vfx.size();
+    int n = x.size();
+      
     // 反復処理
     for( _itr_count = 0; _itr_count < _max_itr_count; _itr_count++ ){
 
-      //int n = vfx.size();
-      int m = vfx.size();
-      int n = x.size();
       vector< double > nf = MyVecZero< double >( n );
       vector< vector< double > > H = MyMatZero< double >( n );
 
-      //for( int i = 0; i < n; i++ ){
       for( int i = 0; i < m; i++ ){
         vector< double > nx( n );
         MyVecGrad( vfx[ i ], x, nx );
@@ -2763,15 +2904,15 @@ class MyMinSearch {
                              std::vector< double > &x ){
     using namespace std;
 
-    // 初期化、諸変数
-    _is_converged = false;
+    // 初期化
+    init();
+    
     int m = vfx.size();
     int n = x.size();
     double c = 0.0001;
 
     // スタート時点での評価関数の値
     double J = 0;
-    //for( int i = 0; i < n; i++ ){
     for( int i = 0; i < m; i++ ){
       double a = vfx[ i ]( x );
       J += a * a;
@@ -2786,7 +2927,6 @@ class MyMinSearch {
 
       // 現在位置での勾配とヘッセ行列を求める。
       // ここはガウス・ニュートン法と同じ
-      //for( int i = 0; i < n; i++ ){
       for( int i = 0; i < m; i++ ){
         vector< double > nx( n );
         MyVecGrad( vfx[ i ], x, nx );

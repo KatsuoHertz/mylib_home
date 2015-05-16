@@ -1,7 +1,7 @@
 /**
- * @file mylib_xct.cpp
+ * @file mylib_xct.hpp
  * @brief 研究テーマ特化なユーティリティ関数、クラス
- * @version 2015.5.9
+ * @version 2015.5.16
  */
 
 #ifndef MYLIB_XCT_HPP
@@ -133,6 +133,7 @@ class MyImageDat
     assert( ifs.is_open() );
     ifs.read( (char *)( &_width ), sizeof( int ) );
     ifs.read( (char *)( &_height ), sizeof( int ) );
+    _dat.clear();
     _dat.resize( _width * _height, 0 );
     ifs.read( (char *)( &( _dat[ 0 ] ) ), sizeof( T ) * _width * _height );
     ifs.close();
@@ -206,6 +207,7 @@ struct MyParam
   double proj_deg_step;
   vector<double> ene_bins;
   double ref_energy;
+  MyParam() : xray( 0 ) { };
   MyParam( const char *filename ){
     using namespace std;
     vector< vector< string > > buf;
@@ -251,7 +253,7 @@ struct MyParam
  * - 二次元の実数値分布に対してラドン変換を行う関数
  * - ０度から１８０度まで 
  */
-void
+int
 MyRadonImg( const MyImageDat<double> *img_in,
             MyImageDat<double> *img_out
             ){
@@ -283,10 +285,10 @@ MyRadonImg( const MyImageDat<double> *img_in,
             double x2 = x + 0.5 * j;
             double y2 = y + 0.5 * k;
             // 中心位置移動
-            x2 -= img_width / 2;
-            y2 -= img_height / 2;
-            //x2 -= img_width / 2 - 0.75;//octaveのradon()に合わせる場合
-            //y2 -= img_height / 2 - 0.75;//octaveのradon()に合わせる場合
+            //x2 -= img_width / 2;
+            //y2 -= img_height / 2;
+            x2 -= img_width / 2 - 0.75;//octaveのradon()に合わせる場合
+            y2 -= img_height / 2 - 0.75;//octaveのradon()に合わせる場合
             // 投影位置計算
             //double Y = - sin_th * x2 + cos_th * y2;//当初
             double Y = cos_th * x2 - sin_th * y2;//octaveのradon()に合わせた
@@ -317,7 +319,7 @@ MyRadonImg( const MyImageDat<double> *img_in,
       img_out->set( j, i, line_buf[ j ] );
     }//j
   }//i
-  return;
+  return 0;
 }
 
 /**
@@ -337,7 +339,7 @@ double MyfKN( double a ){
  * - 与えられた線吸収係数の分布からサイノグラムの各画素で観測されるフォトンの数を計算する。
  * - どのエネルギー帯で計算するかインデックスを与える。
  */
-void
+int
 MyCalcSino( const MyImageDat<double> *img_pe,
             const MyImageDat<double> *img_cs,
             const MyParam *param,
@@ -394,6 +396,7 @@ MyCalcSino( const MyImageDat<double> *img_pe,
   }//y
   delete img_pe_sino;
   delete img_cs_sino;
+  return 0;
 }
 
 }//namespace
