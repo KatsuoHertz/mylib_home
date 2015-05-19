@@ -1602,7 +1602,9 @@ MyGaussSeidelSolve( const std::vector< std::vector< double > > &A,
 
 /**
  * QR 分解を行う。
+ * - A は、正方＆正則であること。
  * - 内部での高速化は未実装。
+ * - A の列ベクトルに対して、Q を、シュミットの直交化の結果としても利用可能。
  */
 int MyQRDecomp( const std::vector< std::vector< double > > &A,
                 std::vector< std::vector< double > > &Q,
