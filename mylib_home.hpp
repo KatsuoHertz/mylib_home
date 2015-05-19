@@ -1,7 +1,7 @@
 /**
  * @file mylib_home.hpp
  * @brief 各種便利関数、クラス
- * @version 2015.5.16
+ * @version 2015.5.19
  */
 
 #ifndef MYLIB_HOME_HPP
@@ -1328,11 +1328,11 @@ MyLUDecomp( std::vector< std::vector< double > > &A ){
  * @param[in,out] b 定数ベクトル。内部で変数として利用されるため、呼び出し後、中身は変更されている。
  */
 int
-MyLUSolve( std::vector< std::vector< double > > &A,
-           std::vector< double > &x,
-           std::vector< double > &b,
-           bool modify = true
-           ){
+MyAxbSolve_LU( std::vector< std::vector< double > > &A,
+               std::vector< double > &x,
+               std::vector< double > &b,
+               bool modify = true
+               ){
   using namespace std;
 
   // 次元
@@ -1380,11 +1380,11 @@ MyLUSolve( std::vector< std::vector< double > > &A,
  * @param[in,out] b 定数ベクトル。内部で変数として利用されるため、呼び出し後、中身は変更されている。
  */
 int
-MyLUSolve( const std::vector< std::vector< double > > &L,
-           const std::vector< std::vector< double > > &U,
-           std::vector< double > &x,
-           std::vector< double > &b
-           ){
+MyAxbSolve_LU( const std::vector< std::vector< double > > &L,
+               const std::vector< std::vector< double > > &U,
+               std::vector< double > &x,
+               std::vector< double > &b
+               ){
   using namespace std;
 
   // 入力チェック
@@ -2468,7 +2468,7 @@ class MyMinSearch {
 
       // 連立一次方程式 H Δx = -∇f を解く 
       n_x = -1.0 * n_x;
-      assert( ! MyLUSolve( H_x, dx, n_x ) );
+      assert( ! MyAxbSolve_LU( H_x, dx, n_x ) );
 
       // x の値を更新
       x = x + dx;
@@ -2534,7 +2534,7 @@ class MyMinSearch {
 
       // 連立一次方程式 H Δx = -∇f を解く 
       n_x = -1.0 * n_x;
-      assert( ! MyLUSolve( H_x, dx, n_x ) );
+      assert( ! MyAxbSolve_LU( H_x, dx, n_x ) );
 
       // x の値を更新
       x = x + dx;
@@ -2968,7 +2968,7 @@ class MyMinSearch {
 
       // 連立一次方程式を解く
       vector< double > dx;
-      assert( ! MyLUSolve( H, dx, nf ) );
+      assert( ! MyAxbSolve_LU( H, dx, nf ) );
 
       // 移動
       x = x + dx;
@@ -3050,7 +3050,7 @@ class MyMinSearch {
       
         // 連立一次方程式を解く
         dx.clear();
-        assert( ! MyLUSolve( H, dx, nf ) );
+        assert( ! MyAxbSolve_LU( H, dx, nf ) );
 
         // 新しい位置に移動
         vector< double > x2 = x + dx;
