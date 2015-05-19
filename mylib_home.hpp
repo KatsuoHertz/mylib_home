@@ -344,7 +344,7 @@ MyReadTextString( const char *filepath,
   while (fin.good()) {
     string line;
     getline( fin, line );
-    vector<string> la = my::MySplit( line );
+    vector<string> la = MySplit( line );
     if( ( col_num == 0 && la.size() > 0 ) ||
         ( col_num != 0 && la.size() == col_num ) ){
       data_buf.push_back( la );
@@ -430,7 +430,7 @@ MyReadTextMapString( const char *filepath,
   while (fin.good()) {
     string line;
     getline( fin, line );
-    vector<string> la = my::MySplit( line );
+    vector<string> la = MySplit( line );
     if( la.size() >= 2 ) data_buf[ la[ 0 ] ] = la[ 1 ];
   }
   fin.close();
@@ -846,6 +846,51 @@ MyMatIdentity( int n ){
   std::vector< std::vector< T > > A( n, std::vector< T >( n, 0 ) );
   for( int i = 0; i < n; i++ ) A[ i ][ i ] = 1;
   return A;
+}
+
+/**
+ * 行列から指定された位置の列ベクトルを取り出す
+ */
+inline
+std::vector< double >
+MyGetColVector( const std::vector< std::vector< double > > &A,
+                int col_index ){
+  assert( A.size() > 0 );
+  assert( MyMatIsRect( A ) );
+  int row = A.size();
+  int col = A[ 0 ].size();
+  assert( col_index >= 0 && col_index < col );
+  std::vector< double > col_vec( row );
+  for( int i = 0; i < row; i++ ){
+    col_vec[ i ] = A[ i ][ col_index ];
+  }
+  return col_vec;
+}
+
+/**
+ * 列ベクトルの配列を返す。
+ *
+ * 行列の転置と同じ
+ */
+inline
+std::vector< std::vector< double > >
+MyGetColVectors( const std::vector< std::vector< double > > &A ){
+  return MyMatTrans( A );
+}
+
+/**
+ * 行列の対角成分を返す。
+ */
+inline
+std::vector< double >
+MyGetDiagVector( const std::vector< std::vector< double > > &A ){
+  assert( MyMatIsRect( A ) );
+  int n = A.size();
+  std::vector< double > diag_vec( n );
+  for( int i = 0; i < n; i++ ){
+    diag_vec[ i ] = A[ i ][ i ];
+  }
+  return diag_vec;
 }
 
 //#########################################################################################
@@ -1550,6 +1595,65 @@ MyGaussSeidelSolve( const std::vector< std::vector< double > > &A,
     if( dout ) *dout << "[" << k + 1 << "]\t x: " << x << " dx: " << dx << endl;
     if( dx < thres ) break;
 
+  }//k
+  
+  return 0;
+}
+
+/**
+ * QR 分解を行う。
+ * - 内部での高速化は未実装。
+ */
+int MyQRDecomp( const std::vector< std::vector< double > > &A,
+                std::vector< std::vector< double > > &Q,
+                std::vector< std::vector< double > > &R ){
+  using namespace std;
+  using namespace my;
+
+  // A は、正方行列＆逆行列が存在する必要（正則）
+  assert( MyMatIsSquare( A ) );
+  // assert( A が正則 );
+
+  int n = A.size();
+  Q = vector< vector< double > >( n );
+  R = MyMatZero< double >( n );
+
+  vector< vector< double > > a = MyGetColVectors( A );
+  for( int i = 0; i < n; i++ ){
+    vector< double > u = a[ i ];
+    for( int j = 0; j < i; j++ ){
+      R[ j ][ i ] = MyVecDot( a[ i ], Q[ j ] );
+      u = u - R[ j ][ i ] * Q[ j ];
+    }//j
+    R[ i ][ i ] = MyVecNorm( u );
+    Q[ i ] = u / R[ i ][ i ];
+  }//i
+
+  Q = MyMatTrans( Q );
+
+  return 0;
+}
+
+/**
+ * 正方＆正則行列の固有値を返す。
+ * - QR分解による方法。
+ * - 高速化はしていない。
+ */
+int MyGetEigenVals_QR( const std::vector< std::vector< double > > &A,
+                       std::vector< double > &out_vals,
+                       double itr_end_thres = 1E-6,
+                       int max_itr_num = 100 ){
+  using namespace std;
+  using namespace my;
+
+  vector< vector< double > > A_k = A, Q, R;
+  vector< double > last_vals = MyGetDiagVector( A_k );
+  for( int k = 0; k < max_itr_num; k++ ){
+    assert( ! MyQRDecomp( A_k, Q, R ) );
+    A_k = R * Q;
+    out_vals = MyGetDiagVector( A_k );
+    if( k > 0 && MyVecNorm( out_vals - last_vals ) < itr_end_thres ) break;
+    last_vals = out_vals;
   }//k
   
   return 0;
