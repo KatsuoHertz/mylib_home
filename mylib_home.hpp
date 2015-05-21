@@ -444,12 +444,11 @@ MyReadTextMapString( const char *filepath,
 /**
  * ベクトルの足し算
  */
-template < typename T >
 inline
-std::vector< T > operator + ( const std::vector< T > &a,
-                              const std::vector< T > &b ){
+std::vector< double > operator + ( const std::vector< double > &a,
+                                   const std::vector< double > &b ){
   assert( a.size() == b.size() );
-  std::vector< T > c( a.size() );
+  std::vector< double > c( a.size() );
   for( int i = 0; i < a.size(); i++ ) c[ i ] = a[ i ] + b[ i ];
   return c;
 }
@@ -457,12 +456,11 @@ std::vector< T > operator + ( const std::vector< T > &a,
 /**
  * ベクトルの引き算
  */
-template < typename T >
 inline
-std::vector< T > operator - ( const std::vector< T > &a,
-                              const std::vector< T > &b ){
+std::vector< double > operator - ( const std::vector< double > &a,
+                                   const std::vector< double > &b ){
   assert( a.size() == b.size() );
-  std::vector< T > c( a.size() );
+  std::vector< double > c( a.size() );
   for( int i = 0; i < a.size(); i++ ) c[ i ] = a[ i ] - b[ i ];
   return c;
 }
@@ -470,11 +468,10 @@ std::vector< T > operator - ( const std::vector< T > &a,
 /**
  * ベクトルのスカラー倍
  */
-template < typename T >
 inline
-std::vector< T > operator * ( const T k,
-                              const std::vector< T > &a ){
-  std::vector< T > c( a.size() );
+std::vector< double > operator * ( const double k,
+                                   const std::vector< double > &a ){
+  std::vector< double > c( a.size() );
   for( int i = 0; i < a.size(); i++ ) c[ i ] = k * a[ i ];
   return c;
 }
@@ -482,12 +479,11 @@ std::vector< T > operator * ( const T k,
 /**
  * ベクトルのスカラー割り
  */
-template < typename T >
 inline
-std::vector< T > operator / ( const std::vector< T > &a,
-                              const T k ){
+std::vector< double > operator / ( const std::vector< double > &a,
+                                   const double k ){
   assert( k != 0 );
-  std::vector< T > c( a.size() );
+  std::vector< double > c( a.size() );
   for( int i = 0; i < a.size(); i++ ) c[ i ] = a[ i ] / k;
   return c;
 }
@@ -495,10 +491,9 @@ std::vector< T > operator / ( const std::vector< T > &a,
 /**
  * ベクトルの表示
  */
-template < typename T >
 inline
 std::ostream & operator << ( std::ostream &os,
-                             const std::vector< T > &a ){
+                             const std::vector< double > &a ){
   for( int i = 0; i < a.size(); i++ ) os << a[ i ] << "\t";
   return os;
 }
@@ -506,9 +501,9 @@ std::ostream & operator << ( std::ostream &os,
 /**
  * ベクトルのノルムを返す
  */
-template < typename T >
-inline T MyVecNorm( const std::vector< T > &a ){
-  T sum = 0.0;
+inline
+double MyVecNorm( const std::vector< double > &a ){
+  double sum = 0.0;
   for( int i = 0; i < a.size(); i++ ){
     sum += a[ i ] * a[ i ];
   }
@@ -518,11 +513,10 @@ inline T MyVecNorm( const std::vector< T > &a ){
 /**
  * ベクトルの内積を計算
  */
-template < typename T >
 inline
-T MyVecDot( const std::vector< T > &a, const std::vector< T > &b ){
+double MyVecDot( const std::vector< double > &a, const std::vector< double > &b ){
   assert( a.size() == b.size() );
-  T sum = 0.0;
+  double sum = 0.0;
   for( int i = 0; i < a.size(); i++ ){
     sum += a[ i ] * b[ i ];
   }
@@ -532,14 +526,14 @@ T MyVecDot( const std::vector< T > &a, const std::vector< T > &b ){
 /**
  * ベクトルの要素のヒストグラムを計算
  */
-template < typename T >
 void
-MyVecHist( const std::vector< T > &data,
-           std::map< T, int > &hist
+MyVecHist( const std::vector< double > &data,
+           std::map< double, int > &hist
            ){
   using namespace std;
   hist.clear();
-  for( typename vector< T >::const_iterator it = data.begin(); it != data.end(); it++ ){
+  //for( typename vector< double >::const_iterator it = data.begin(); it != data.end(); it++ ){
+  for( vector< double >::const_iterator it = data.begin(); it != data.end(); it++ ){
     if( hist.find( *it ) == hist.end() ) hist[ *it ] = 1;
     else hist[ *it ] = hist[ *it ] + 1;
   }
@@ -550,17 +544,17 @@ MyVecHist( const std::vector< T > &data,
  * @param[out] count 頻度（出現回数）が入る。
  * @return 最頻の要素の値
  */
-template < typename T >
-T
-MyVecMostFrequentElem( const std::vector< T > &data,
+double
+MyVecMostFrequentElem( const std::vector< double > &data,
                        int *count = NULL // 最頻値の数が入る
                        ){
   using namespace std;
-  map< T, int > hist;
+  map< double, int > hist;
   MyVecHist( data, hist );
   int max_val = 0;
   int key_at_max = 0;
-  for( typename map< T, int >::const_iterator it = hist.begin(); it != hist.end(); it++ ){
+  //for( typename map< double, int >::const_iterator it = hist.begin(); it != hist.end(); it++ ){
+  for( map< double, int >::const_iterator it = hist.begin(); it != hist.end(); it++ ){
     if( it->second > max_val ){
       max_val = it->second;
       key_at_max = it->first;
@@ -615,16 +609,15 @@ MyMatAreTheSameSize( const std::vector< std::vector< double > > &A,
  * 行列の足し算
  */
 
-template < typename T >
 inline
-std::vector< std::vector< T > >
-operator + ( const std::vector< std::vector< T > > &A,
-             const std::vector< std::vector< T > > &B ){
+std::vector< std::vector< double > >
+operator + ( const std::vector< std::vector< double > > &A,
+             const std::vector< std::vector< double > > &B ){
   assert( MyMatSize( A ) == MyMatSize( B ) );
   using namespace std;
   int M = A.size();
   int N = A[ 0 ].size();
-  vector< vector< T > > C( M, vector< T >( N ) );
+  vector< vector< double > > C( M, vector< double >( N ) );
   for( int i = 0; i < M; i++ ){
     for( int j = 0; j < N; j++ ){
       C[ i ][ j ] = A[ i ][ j ] + B[ i ][ j ];
@@ -637,11 +630,10 @@ operator + ( const std::vector< std::vector< T > > &A,
  * 行列の引き算
  */
 
-template < typename T >
 inline
-std::vector< std::vector< T > >
-operator - ( const std::vector< std::vector< T > > &A,
-             const std::vector< std::vector< T > > &B ){
+std::vector< std::vector< double > >
+operator - ( const std::vector< std::vector< double > > &A,
+             const std::vector< std::vector< double > > &B ){
   assert( MyMatSize( A ) == MyMatSize( B ) );
   using namespace std;
   int M = A.size();
@@ -649,7 +641,7 @@ operator - ( const std::vector< std::vector< T > > &A,
   assert( M > 0 );
   assert( M == B.size() );
   assert( N == B[ 0 ].size() );
-  vector< vector< T > > C( M, vector< T >( N ) );
+  vector< vector< double > > C( M, vector< double >( N ) );
   for( int i = 0; i < M; i++ ){
     for( int j = 0; j < N; j++ ){
       C[ i ][ j ] = A[ i ][ j ] - B[ i ][ j ];
@@ -661,11 +653,10 @@ operator - ( const std::vector< std::vector< T > > &A,
 /**
  * 行列の掛け算
  */
-template < typename T >
 inline
-std::vector< std::vector< T > >
-operator * ( const std::vector< std::vector< T > > &A,
-             const std::vector< std::vector< T > > &B ){
+std::vector< std::vector< double > >
+operator * ( const std::vector< std::vector< double > > &A,
+             const std::vector< std::vector< double > > &B ){
   using namespace std;
   int M = A.size();
   assert( M > 0 );
@@ -675,7 +666,7 @@ operator * ( const std::vector< std::vector< T > > &A,
   int L = B[ 0 ].size();
   assert( L > 0 );
   // M x N, N x L
-  vector< vector< T > > C( M, vector< T >( L ) );
+  vector< vector< double > > C( M, vector< double >( L ) );
   for( int i = 0; i < M; i++ ){
     for( int j = 0; j < L; j++ ){
       C[ i ][ j ] = 0;
@@ -691,17 +682,16 @@ operator * ( const std::vector< std::vector< T > > &A,
  * 行列のスカラー倍
  */
 
-template < typename T >
 inline
-std::vector< std::vector< T > >
-operator * ( T k,
-             const std::vector< std::vector< T > > &A ){
+std::vector< std::vector< double > >
+operator * ( double k,
+             const std::vector< std::vector< double > > &A ){
   using namespace std;
   int M = A.size();
   assert( M > 0 );
   int N = A[ 0 ].size();
   assert( N > 0 );
-  vector< vector< T > > C( M, vector< T >( N ) );
+  vector< vector< double > > C( M, vector< double >( N ) );
   for( int i = 0; i < M; i++ ){
     for( int j = 0; j < N; j++ ){
       C[ i ][ j ] = k * A[ i ][ j ];
@@ -714,16 +704,15 @@ operator * ( T k,
  * 行列の転置
  */
 
-template < typename T >
 inline
-std::vector< std::vector< T > >
-MyMatTrans( const std::vector< std::vector< T > > &A ){
+std::vector< std::vector< double > >
+MyMatTrans( const std::vector< std::vector< double > > &A ){
   using namespace std;
   int M = A.size();
   assert( M > 0 );
   int N = A[ 0 ].size();
   assert( N > 0 );
-  vector< vector< double > > C( N, vector< T >( M ) );
+  vector< vector< double > > C( N, vector< double >( M ) );
   for( int i = 0; i < N; i++ ){
     for( int j = 0; j < M; j++ ){
       C[ i ][ j ] = A[ j ][ i ];
@@ -736,10 +725,9 @@ MyMatTrans( const std::vector< std::vector< T > > &A ){
  * 行列の表示
  */
 
-template < typename T >
 inline
 std::ostream & operator << ( std::ostream &os,
-                             const std::vector< std::vector< T > > &A)
+                             const std::vector< std::vector< double > > &A)
 {
   int M = A.size();
   int N = A[ 0 ].size();
@@ -757,11 +745,10 @@ std::ostream & operator << ( std::ostream &os,
  * - ベクトルになる
  * - M x N * N x 1 => M x 1
  */
-template < typename T >
 inline
-std::vector< T >
-operator * ( const std::vector< std::vector< T > > &A,
-             const std::vector< T > &x
+std::vector< double >
+operator * ( const std::vector< std::vector< double > > &A,
+             const std::vector< double > &x
               ){
   using namespace std;
   // M x N, N x 1
@@ -770,7 +757,7 @@ operator * ( const std::vector< std::vector< T > > &A,
   int N = A[ 0 ].size();
   assert( N == x.size() );
   assert( N > 0 );
-  vector< T > b( N, 0 );
+  vector< double > b( N, 0 );
   for( int i = 0; i < M; i++ ){
     for( int j = 0; j < N; j++ ){
       b[ i ] += A[ i ][ j ] * x[ j ];
@@ -784,14 +771,13 @@ operator * ( const std::vector< std::vector< T > > &A,
  * - 横１列の行列になる
  * - N x 1 ベクトル => 1 x N 行列
  */
-template < typename T >
 inline
-std::vector< std::vector< T > >
-MyVecTrans( const std::vector< T > &x ){
+std::vector< std::vector< double > >
+MyVecTrans( const std::vector< double > &x ){
   using namespace std;
   int N = x.size();
   assert( N > 0 );
-  vector< vector< double > > A( 1, vector< T >( N ) );
+  vector< vector< double > > A( 1, vector< double >( N ) );
   for( int i = 0; i < N; i++ ){
     A[ 0 ][ i ] = x[ i ];
   }
@@ -802,14 +788,13 @@ MyVecTrans( const std::vector< T > &x ){
  * ベクトルの行列化
  * - 縦１列の行列になる
  */
-template < typename T >
 inline
-std::vector< std::vector< T > >
-MyVec2Mat( const std::vector< T > &x ){
+std::vector< std::vector< double > >
+MyVec2Mat( const std::vector< double > &x ){
   using namespace std;
   int N = x.size();
   assert( N > 0 );
-  vector< vector< double > > A( N, vector< T >( 1 ) );
+  vector< vector< double > > A( N, vector< double >( 1 ) );
   for( int i = 0; i < N; i++ ){
     A[ i ][ 0 ] = x[ i ];
   }
@@ -819,31 +804,28 @@ MyVec2Mat( const std::vector< T > &x ){
 /** 
  * ゼロベクトルを返す
  */
-template < typename T >
 inline
-std::vector< T >
+std::vector< double >
 MyVecZero( int n ){
-  return std::vector< T >( n, 0 );
+  return std::vector< double >( n, 0 );
 }
 
 /** 
  * ゼロ行列を返す
  */
-template < typename T >
 inline
-std::vector< std::vector< T > >
+std::vector< std::vector< double > >
 MyMatZero( int n ){
-  return std::vector< std::vector< T > >( n, std::vector< T >( n, 0 ) );
+  return std::vector< std::vector< double > >( n, std::vector< double >( n, 0 ) );
 }
 
 /** 
  * 単位行列を返す
  */
-template < typename T >
 inline
-std::vector< std::vector< T > >
+std::vector< std::vector< double > >
 MyMatIdentity( int n ){
-  std::vector< std::vector< T > > A( n, std::vector< T >( n, 0 ) );
+  std::vector< std::vector< double > > A( n, std::vector< double >( n, 0 ) );
   for( int i = 0; i < n; i++ ) A[ i ][ i ] = 1;
   return A;
 }
@@ -899,15 +881,15 @@ MyGetDiagVector( const std::vector< std::vector< double > > &A ){
 
 /**
  * １変数関数の数値微分を計算
- * - T fx( T x ) な関数
+ * - double fx( double x ) な関数
  * - 中心差分
  * @param fx 関数へのポインタ
  * @param x この値での微分値を計算
  * @param[out] out 出力値
  * @param h 微分計算時に用いる微小変化量。デフォルトは、1E-6
  */
-template < typename T >
-inline int MyCalcGrad( T (*fx)( T ), T x, T *out, T h = 1E-06 ){
+inline
+int MyCalcGrad( double (*fx)( double ), double x, double *out, double h = 1E-06 ){
 
   // h が 0 だとゼロ割になってしまうのでダメ
   assert( h != 0 );
@@ -922,30 +904,28 @@ inline int MyCalcGrad( T (*fx)( T ), T x, T *out, T h = 1E-06 ){
  * １変数関数の数値微分を計算
  * - 値を返す版
  */
-template < typename T >
 inline
-T MyCalcGrad( T (*fx)( T ), T x, T h = 1E-06 ){
-  T out;
+double MyCalcGrad( double (*fx)( double ), double x, double h = 1E-06 ){
+  double out;
   MyCalcGrad( fx, x, &out, h );
   return out;
 }
 
 /**
  * 多変数関数の勾配（ナブラ）を返す
- * - vector< T > fx( const vector< T > &x ) な関数
+ * - vector< double > fx( const vector< double > &x ) な関数
  * - 数値微分（中心差分）
  * @param fx 多変数関数へのポインタ
  * @param x この位置での勾配を計算
  * @param [out] 出力値
  * @param h 数値微分に用いる微小変化値。デフォルトは、1E-6
  */
-template < typename T >
 inline
 int
-MyVecGrad( T (*fx)( const std::vector< T > & ),
-           const std::vector< T > &x,
-           std::vector< T > &out,
-           T h = 1E-06
+MyVecGrad( double (*fx)( const std::vector< double > & ),
+           const std::vector< double > &x,
+           std::vector< double > &out,
+           double h = 1E-06
            ){
   using namespace std;
 
@@ -965,7 +945,7 @@ MyVecGrad( T (*fx)( const std::vector< T > & ),
   for( int i = 0; i < n; i++ ){
 
     // その成分だけを少し動かすベクトル
-    vector< T > dx( n, 0 );
+    vector< double > dx( n, 0 );
     dx[ i ] = h;
 
     // 両隣の関数値の変化から微分値を計算（中心差分方式）   
@@ -978,11 +958,10 @@ MyVecGrad( T (*fx)( const std::vector< T > & ),
 /**
  * 勾配ベクトルを返り値として返すパターン
  */
-template < typename T >
-inline std::vector< T >
-MyVecGrad( T (*fx)( const std::vector< T > & ),
-           const std::vector< T > &x, T h = 1E-06 ){
-  std::vector< T > out;
+inline std::vector< double >
+MyVecGrad( double (*fx)( const std::vector< double > & ),
+           const std::vector< double > &x, double h = 1E-06 ){
+  std::vector< double > out;
   MyVecGrad( fx, x, out, h );
   return out;
 }
@@ -992,13 +971,12 @@ MyVecGrad( T (*fx)( const std::vector< T > & ),
  * - d2f/dxdy = ( f(x+h,y+h) - f(x-h,y+h) - f(x+h,y-h) + f(x-h,y-h) ) / (4*h*h)
  * @param h 差分計算時の微小変化量。二乗されることに注意。小さくしすぎると値がおかしくなる。
  */
-template < typename T >
 inline
 int
-MyMatHessian( T (*fx)( const std::vector< T > & ),
-              const std::vector< T > &x,
-              std::vector< std::vector< T > > &out,
-              T h = 1E-3 ){
+MyMatHessian( double (*fx)( const std::vector< double > & ),
+              const std::vector< double > &x,
+              std::vector< std::vector< double > > &out,
+              double h = 1E-3 ){
   using namespace std;
 
   // 入力チェック
@@ -1008,21 +986,21 @@ MyMatHessian( T (*fx)( const std::vector< T > & ),
   int N = x.size();
 
   // 出力バッファ
-  if( out.empty() ) out.resize( N, vector< T >( N ) );
+  if( out.empty() ) out.resize( N, vector< double >( N ) );
   else assert( MyMatSize( out ) == MyPoint2i( N, N ) );
   
   for( int i = 0; i < N; i++ ){
     for( int j = i; j < N; j++ ){
-      vector< T > h1( x );
+      vector< double > h1( x );
       h1[ i ] += h;
       h1[ j ] += h;
-      vector< T > h2( x );
+      vector< double > h2( x );
       h2[ i ] -= h;
       h2[ j ] += h;
-      vector< T > h3( x );
+      vector< double > h3( x );
       h3[ i ] += h;
       h3[ j ] -= h;
-      vector< T > h4( x );
+      vector< double > h4( x );
       h4[ i ] -= h;
       h4[ j ] -= h;
       out[ i ][ j ] = ( fx( h1 ) - fx( h2 ) - fx( h3 ) + fx( h4 ) ) / ( 4 * h * h );
@@ -1618,7 +1596,7 @@ int MyQRDecomp( const std::vector< std::vector< double > > &A,
 
   int n = A.size();
   Q = vector< vector< double > >( n );
-  R = MyMatZero< double >( n );
+  R = MyMatZero( n );
 
   vector< vector< double > > a = MyGetColVectors( A );
   for( int i = 0; i < n; i++ ){
@@ -2870,8 +2848,8 @@ class MyMinSearch {
     vector< double > n_x_new( n );
 
     // ヘッセの近似に使う行列
-    vector< vector< double > > I = MyMatIdentity< double >( n );
-    vector< vector< double > > Bk = MyMatIdentity< double >( n );
+    vector< vector< double > > I = MyMatIdentity( n );
+    vector< vector< double > > Bk = MyMatIdentity( n );
 
     // 現時点での評価値
     // double fx_val = fx( x );
@@ -2958,8 +2936,8 @@ class MyMinSearch {
     // 反復処理
     for( _itr_count = 0; _itr_count < _max_itr_count; _itr_count++ ){
 
-      vector< double > nf = MyVecZero< double >( n );
-      vector< vector< double > > H = MyMatZero< double >( n );
+      vector< double > nf = MyVecZero( n );
+      vector< vector< double > > H = MyMatZero( n );
 
       for( int i = 0; i < m; i++ ){
         vector< double > nx( n );
@@ -3027,9 +3005,9 @@ class MyMinSearch {
     // 反復処理
     for( _itr_count = 0; _itr_count < _max_itr_count; _itr_count++ ){
 
-      vector< double > nf = MyVecZero< double >( n );
-      vector< vector< double > > H = MyMatZero< double >( n );
-      vector< vector< double > > I = MyMatIdentity< double >( n );
+      vector< double > nf = MyVecZero( n );
+      vector< vector< double > > H = MyMatZero( n );
+      vector< vector< double > > I = MyMatIdentity( n );
 
       // 現在位置での勾配とヘッセ行列を求める。
       // ここはガウス・ニュートン法と同じ
