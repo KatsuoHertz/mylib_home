@@ -1,7 +1,7 @@
 /**
  * @file mylib_home.hpp
  * @brief 各種便利関数、クラス
- * @version 2015.5.19
+ * @version 2015.5.22
  */
 
 #ifndef MYLIB_HOME_HPP
@@ -1458,12 +1458,12 @@ MyMatIsDiagDominant( const std::vector< std::vector< double > > &A ){
  * @param dout デバッグ情報の表示
  */
 int
-MyJacobiSolve( const std::vector< std::vector< double > > &A,
-               std::vector< double > &x,
-               const std::vector< double > &b,
-               double thres = 1E-06,
-               int max_itr_num = 100,
-               std::ostream *dout = 0 ){
+MyAxbSolve_Jacobi( const std::vector< std::vector< double > > &A,
+                   std::vector< double > &x,
+                   const std::vector< double > &b,
+                   double thres = 1E-06,
+                   int max_itr_num = 100,
+                   std::ostream *dout = 0 ){
   using namespace std;
 
   // 次元
@@ -1483,7 +1483,7 @@ MyJacobiSolve( const std::vector< std::vector< double > > &A,
   vector< double > x_next( N );
   
   if( dout ){
-    *dout << "--- MyJacobiSolve() ---" << endl;
+    *dout << "--- MyAxbSolve_Jacobi() ---" << endl;
     *dout << "[0]\t" << x << endl;
   }
     
@@ -1530,12 +1530,12 @@ MyJacobiSolve( const std::vector< std::vector< double > > &A,
  * @param dout デバッグ情報の表示
  */
 int
-MyGaussSeidelSolve( const std::vector< std::vector< double > > &A,
-                    std::vector< double > &x,
-                    const std::vector< double > &b,
-                    double thres = 1E-06,
-                    int max_itr_num = 100,
-                    std::ostream *dout = 0 ){
+MyAxbSolve_GaussSeidel( const std::vector< std::vector< double > > &A,
+                        std::vector< double > &x,
+                        const std::vector< double > &b,
+                        double thres = 1E-06,
+                        int max_itr_num = 100,
+                        std::ostream *dout = 0 ){
   using namespace std;
 
   // 次元
@@ -1552,7 +1552,7 @@ MyGaussSeidelSolve( const std::vector< std::vector< double > > &A,
   // if( ! MyMatIsDiagDominant( A ) ) return -1;
   
   if( dout ){
-    *dout << "--- MyGaussSeidelSolve() ---" << endl;
+    *dout << "--- MyAxbSolve_GaussSeidel() ---" << endl;
     *dout << "[0]\t" << x << endl;
   }
     
