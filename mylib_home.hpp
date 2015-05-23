@@ -1604,7 +1604,8 @@ MyAxbSolve_GaussSeidel( const std::vector< std::vector< double > > &A,
 /**
  * QR 分解を行う。
  * - A は、正方＆正則であること。
- * - 内部での高速化は未実装。
+ * - 原点移動による高速化は未実装。
+ * - 内部でシュミットの直交化を行っている。
  * - A の列ベクトルに対して、Q を、シュミットの直交化の結果としても利用可能。
  */
 int MyQRDecomp( const std::vector< std::vector< double > > &A,
@@ -1638,27 +1639,34 @@ int MyQRDecomp( const std::vector< std::vector< double > > &A,
 }
 
 /**
- * 正方＆正則行列の固有値を返す。
- * - QR分解による方法。
- * - 高速化はしていない。
- */
-int MyGetEigenVals_QR( const std::vector< std::vector< double > > &A,
-                       std::vector< double > &out_vals,
-                       double itr_end_thres = 1E-6,
-                       int max_itr_num = 100 ){
+ * QR 法による固有値と固有ベクトルの計算
+ * A は、対称行列であること。
+ * @param A n x n の正方対称行列であること
+ * @param[out] V 固有ベクトルが入る。i 番目の固有値に対応。
+ * @param[out] L 固有値が入る。i 番目の固有ベクトルに対応。
+ * @param itr_end_thres 収束条件。毎回の固有値の変化量（ノルム）がこの値を下回ったら計算終了。5x5行列を使ったテストでは1E-06では精度がいまいちだった。なので、デフォルトでは、なんとなく1E-10としてある。固有値と固有ベクトルの計算結果から判断して要調整。
+ * @param max_itr_num 収束条件。この回数を超えたら計算終了。itr_end_thres に合わせてこれも要調整。
+ */ 
+int MyEig_QR( const std::vector< std::vector< double > > &A,
+              std::vector< std::vector< double > > &V,
+              std::vector< double > &L,
+              double itr_end_thres = 1E-10,
+              double max_itr_num = 100
+              ){
   using namespace std;
   using namespace my;
-
   vector< vector< double > > A_k = A, Q, R;
-  vector< double > last_vals = MyGetDiagVector( A_k );
+  V = MyMatIdentity( A.size() );
+  vector< double > last = MyGetDiagVector( A_k );
   for( int k = 0; k < max_itr_num; k++ ){
     assert( ! MyQRDecomp( A_k, Q, R ) );
     A_k = R * Q;
-    out_vals = MyGetDiagVector( A_k );
-    if( k > 0 && MyVecNorm( out_vals - last_vals ) < itr_end_thres ) break;
-    last_vals = out_vals;
+    L = MyGetDiagVector( A_k );
+    if( k > 0 && MyVecNorm( L - last ) < itr_end_thres ) break;
+    last = L;
+    V = V * Q;
   }//k
-  
+  V = MyMatTrans( V );
   return 0;
 }
 
