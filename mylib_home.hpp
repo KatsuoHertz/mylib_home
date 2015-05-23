@@ -1656,21 +1656,22 @@ int MyQRDecomp( const std::vector< std::vector< double > > &A,
  * QR 法による固有値と固有ベクトルの計算
  * A は、対称行列であること。
  * @param A n x n の正方対称行列であること
- * @param[out] V 固有ベクトルが入る。i 番目の固有値に対応。
+ * @param[out] U 固有ベクトルが入る。i 番目の固有値に対応。固有ベクトルが列でなく行方向に並んだもの。
  * @param[out] L 固有値が入る。i 番目の固有ベクトルに対応。
  * @param itr_end_thres 収束条件。毎回の固有値の変化量（ノルム）がこの値を下回ったら計算終了。5x5行列を使ったテストでは1E-06では精度がいまいちだった。なので、デフォルトでは、なんとなく1E-10としてある。固有値と固有ベクトルの計算結果から判断して要調整。
  * @param max_itr_num 収束条件。この回数を超えたら計算終了。itr_end_thres に合わせてこれも要調整。
  */ 
 int MyEig_QR( const std::vector< std::vector< double > > &A,
-              std::vector< std::vector< double > > &V,
+              std::vector< std::vector< double > > &U,
               std::vector< double > &L,
               double itr_end_thres = 1E-10,
               double max_itr_num = 100
               ){
   using namespace std;
   using namespace my;
+  assert( MyMatIsSymmetric( A ) );
   vector< vector< double > > A_k = A, Q, R;
-  V = MyMatIdentity( A.size() );
+  U = MyMatIdentity( A.size() );
   vector< double > last = MyGetDiagVector( A_k );
   for( int k = 0; k < max_itr_num; k++ ){
     assert( ! MyQRDecomp( A_k, Q, R ) );
@@ -1678,9 +1679,9 @@ int MyEig_QR( const std::vector< std::vector< double > > &A,
     L = MyGetDiagVector( A_k );
     if( k > 0 && MyVecNorm( L - last ) < itr_end_thres ) break;
     last = L;
-    V = V * Q;
+    U = U * Q;
   }//k
-  V = MyMatTrans( V );
+  U = MyMatTrans( U );
   return 0;
 }
 
