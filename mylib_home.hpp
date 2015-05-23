@@ -530,10 +530,8 @@ void
 MyVecHist( const std::vector< double > &data,
            std::map< double, int > &hist
            ){
-  using namespace std;
   hist.clear();
-  //for( typename vector< double >::const_iterator it = data.begin(); it != data.end(); it++ ){
-  for( vector< double >::const_iterator it = data.begin(); it != data.end(); it++ ){
+  for( std::vector< double >::const_iterator it = data.begin(); it != data.end(); it++ ){
     if( hist.find( *it ) == hist.end() ) hist[ *it ] = 1;
     else hist[ *it ] = hist[ *it ] + 1;
   }
@@ -548,13 +546,11 @@ double
 MyVecMostFrequentElem( const std::vector< double > &data,
                        int *count = NULL // 最頻値の数が入る
                        ){
-  using namespace std;
-  map< double, int > hist;
+  std::map< double, int > hist;
   MyVecHist( data, hist );
   int max_val = 0;
   int key_at_max = 0;
-  //for( typename map< double, int >::const_iterator it = hist.begin(); it != hist.end(); it++ ){
-  for( map< double, int >::const_iterator it = hist.begin(); it != hist.end(); it++ ){
+  for( std::map< double, int >::const_iterator it = hist.begin(); it != hist.end(); it++ ){
     if( it->second > max_val ){
       max_val = it->second;
       key_at_max = it->first;
@@ -613,13 +609,12 @@ inline
 std::vector< std::vector< double > >
 operator + ( const std::vector< std::vector< double > > &A,
              const std::vector< std::vector< double > > &B ){
-  assert( MyMatSize( A ) == MyMatSize( B ) );
-  using namespace std;
-  int M = A.size();
-  int N = A[ 0 ].size();
-  vector< vector< double > > C( M, vector< double >( N ) );
-  for( int i = 0; i < M; i++ ){
-    for( int j = 0; j < N; j++ ){
+  assert( A.size() > 0 && A[ 0 ].size() > 0 );
+  std::vector< std::vector< double > > C( A.size(), std::vector< double >( A[ 0 ].size() ) );
+  assert( A.size() == B.size() );
+  for( int i = 0; i < A.size(); i++ ){
+    assert( A[ i ].size() == B[ i ].size() );
+    for( int j = 0; j < A[ i ].size(); j++ ){
       C[ i ][ j ] = A[ i ][ j ] + B[ i ][ j ];
     }
   }
@@ -634,16 +629,12 @@ inline
 std::vector< std::vector< double > >
 operator - ( const std::vector< std::vector< double > > &A,
              const std::vector< std::vector< double > > &B ){
-  assert( MyMatSize( A ) == MyMatSize( B ) );
-  using namespace std;
-  int M = A.size();
-  int N = A[ 0 ].size();
-  assert( M > 0 );
-  assert( M == B.size() );
-  assert( N == B[ 0 ].size() );
-  vector< vector< double > > C( M, vector< double >( N ) );
-  for( int i = 0; i < M; i++ ){
-    for( int j = 0; j < N; j++ ){
+  assert( A.size() > 0 && A[ 0 ].size() > 0 );
+  std::vector< std::vector< double > > C( A.size(), std::vector< double >( A[ 0 ].size() ) );
+  assert( A.size() == B.size() );
+  for( int i = 0; i < A.size(); i++ ){
+    assert( A[ i ].size() == B[ i ].size() );
+    for( int j = 0; j < A[ i ].size(); j++ ){
       C[ i ][ j ] = A[ i ][ j ] - B[ i ][ j ];
     }
   }
@@ -657,20 +648,13 @@ inline
 std::vector< std::vector< double > >
 operator * ( const std::vector< std::vector< double > > &A,
              const std::vector< std::vector< double > > &B ){
-  using namespace std;
-  int M = A.size();
-  assert( M > 0 );
-  int N = A[ 0 ].size();
-  assert( N == B.size() );
-  assert( N > 0 );
-  int L = B[ 0 ].size();
-  assert( L > 0 );
-  // M x N, N x L
-  vector< vector< double > > C( M, vector< double >( L ) );
-  for( int i = 0; i < M; i++ ){
-    for( int j = 0; j < L; j++ ){
+  assert( A.size() > 0 && A[ 0 ].size() > 0 );
+  assert( A[ 0 ].size() == B.size() && B[ 0 ].size() > 0 );
+  std::vector< std::vector< double > > C( A.size(), std::vector< double >( B[ 0 ].size() ) );
+  for( int i = 0; i < C.size(); i++ ){
+    for( int j = 0; j < C[ i ].size(); j++ ){
       C[ i ][ j ] = 0;
-      for( int k = 0; k < N; k++ ){
+      for( int k = 0; k < B.size(); k++ ){
         C[ i ][ j ] += A[ i ][ k ] * B[ k ][ j ];
       }
     }
@@ -686,14 +670,10 @@ inline
 std::vector< std::vector< double > >
 operator * ( double k,
              const std::vector< std::vector< double > > &A ){
-  using namespace std;
-  int M = A.size();
-  assert( M > 0 );
-  int N = A[ 0 ].size();
-  assert( N > 0 );
-  vector< vector< double > > C( M, vector< double >( N ) );
-  for( int i = 0; i < M; i++ ){
-    for( int j = 0; j < N; j++ ){
+  assert( A.size() > 0 && A[ 0 ].size() > 0 );
+  std::vector< std::vector< double > > C( A.size(), std::vector< double >( A[ 0 ].size() ) );
+  for( int i = 0; i < A.size(); i++ ){
+    for( int j = 0; j < A[ i ].size(); j++ ){
       C[ i ][ j ] = k * A[ i ][ j ];
     }
   }
@@ -708,15 +688,10 @@ inline
 std::vector< std::vector< double > >
 operator / ( const std::vector< std::vector< double > > &A,
              double k ){
-  using namespace std;
-  int M = A.size();
-  assert( M > 0 );
-  int N = A[ 0 ].size();
-  assert( N > 0 );
-  assert( k != 0 );
-  vector< vector< double > > C( M, vector< double >( N ) );
-  for( int i = 0; i < M; i++ ){
-    for( int j = 0; j < N; j++ ){
+  assert( A.size() > 0 && A[ 0 ].size() > 0 && k != 0 );
+  std::vector< std::vector< double > > C( A.size(), std::vector< double >( A[ 0 ].size() ) );
+  for( int i = 0; i < A.size(); i++ ){
+    for( int j = 0; j < A[ i ].size(); j++ ){
       C[ i ][ j ] = A[ i ][ j ] * k;
     }
   }
@@ -730,14 +705,10 @@ operator / ( const std::vector< std::vector< double > > &A,
 inline
 std::vector< std::vector< double > >
 MyMatTrans( const std::vector< std::vector< double > > &A ){
-  using namespace std;
-  int M = A.size();
-  assert( M > 0 );
-  int N = A[ 0 ].size();
-  assert( N > 0 );
-  vector< vector< double > > C( N, vector< double >( M ) );
-  for( int i = 0; i < N; i++ ){
-    for( int j = 0; j < M; j++ ){
+  assert( A.size() > 0 && A[ 0 ].size() > 0 );
+  std::vector< std::vector< double > > C( A[ 0 ].size(), std::vector< double >( A.size() ) );
+  for( int i = 0; i < C.size(); i++ ){
+    for( int j = 0; j < C[ i ].size(); j++ ){
       C[ i ][ j ] = A[ j ][ i ];
     }
   }
@@ -752,15 +723,60 @@ inline
 std::ostream & operator << ( std::ostream &os,
                              const std::vector< std::vector< double > > &A)
 {
-  int M = A.size();
-  int N = A[ 0 ].size();
-  for( int i = 0; i < M; i++ ){
-    for( int j = 0; j < N; j++ ){
+  for( int i = 0; i < A.size(); i++ ){
+    for( int j = 0; j < A[ 0 ].size(); j++ ){
       os << A[ i ][ j ] << "\t";
     }
     os << std::endl;
   }
   return os;
+}
+
+/**
+ * 行列の等号
+ */ 
+inline
+bool operator == ( const std::vector< std::vector< double > > &A,
+                   const std::vector< std::vector< double > > &B ){
+  if( A.size() != B.size() ) return false;
+  for( int i = 0; i < A.size(); i++ ){
+    if( A[ i ].size() != B[ i ].size() ) return false;
+    for( int j = 0; j < A[ i ].size(); j++ ){
+      if( A[ i ][ j ] != B[ i ][ j ] ) return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * 行列のノットイコール
+ */ 
+inline
+bool operator != ( const std::vector< std::vector< double > > &A,
+                   const std::vector< std::vector< double > > &B ){
+  return !( A == B );
+}
+
+/**
+ * ベクトルの等号
+ */ 
+inline
+bool operator == ( const std::vector< double > &A,
+                   const std::vector< double > &B ){
+  if( A.size() != B.size() ) return false;
+  for( int i = 0; i < A.size(); i++ ){
+    if( A[ i ] != B[ i ] ) return false;
+  }
+  return true;
+}
+
+/**
+ * ベクトルのノットイコール
+ */ 
+inline
+bool operator != ( const std::vector< double > &A,
+                   const std::vector< double > &B ){
+  return !( A == B );
 }
 
 /**
@@ -773,16 +789,10 @@ std::vector< double >
 operator * ( const std::vector< std::vector< double > > &A,
              const std::vector< double > &x
               ){
-  using namespace std;
-  // M x N, N x 1
-  int M = A.size();
-  assert( M > 0 );
-  int N = A[ 0 ].size();
-  assert( N == x.size() );
-  assert( N > 0 );
-  vector< double > b( N, 0 );
-  for( int i = 0; i < M; i++ ){
-    for( int j = 0; j < N; j++ ){
+  assert( A.size() > 0 && A[ 0 ].size() > 0 && A[ 0 ].size() == x.size() );
+  std::vector< double > b( A[ 0 ].size(), 0 );
+  for( int i = 0; i < A.size(); i++ ){
+    for( int j = 0; j < A[ i ].size(); j++ ){
       b[ i ] += A[ i ][ j ] * x[ j ];
     }
   }
@@ -797,11 +807,9 @@ operator * ( const std::vector< std::vector< double > > &A,
 inline
 std::vector< std::vector< double > >
 MyVecTrans( const std::vector< double > &x ){
-  using namespace std;
-  int N = x.size();
-  assert( N > 0 );
-  vector< vector< double > > A( 1, vector< double >( N ) );
-  for( int i = 0; i < N; i++ ){
+  assert( x.size() > 0 );
+  std::vector< std::vector< double > > A( 1, std::vector< double >( x.size() ) );
+  for( int i = 0; i < x.size(); i++ ){
     A[ 0 ][ i ] = x[ i ];
   }
   return A;
@@ -815,10 +823,9 @@ inline
 std::vector< std::vector< double > >
 MyVec2Mat( const std::vector< double > &x ){
   using namespace std;
-  int N = x.size();
-  assert( N > 0 );
-  vector< vector< double > > A( N, vector< double >( 1 ) );
-  for( int i = 0; i < N; i++ ){
+  assert( x.size() > 0 );
+  std::vector< std::vector< double > > A( x.size(), vector< double >( 1 ) );
+  for( int i = 0; i < x.size(); i++ ){
     A[ i ][ 0 ] = x[ i ];
   }
   return A;
@@ -862,11 +869,9 @@ MyGetColVector( const std::vector< std::vector< double > > &A,
                 int col_index ){
   assert( A.size() > 0 );
   assert( MyMatIsRect( A ) );
-  int row = A.size();
-  int col = A[ 0 ].size();
-  assert( col_index >= 0 && col_index < col );
-  std::vector< double > col_vec( row );
-  for( int i = 0; i < row; i++ ){
+  assert( col_index >= 0 && col_index < A[ 0 ].size() );
+  std::vector< double > col_vec( A.size() );
+  for( int i = 0; i < A.size(); i++ ){
     col_vec[ i ] = A[ i ][ col_index ];
   }
   return col_vec;
@@ -896,6 +901,15 @@ MyGetDiagVector( const std::vector< std::vector< double > > &A ){
     diag_vec[ i ] = A[ i ][ i ];
   }
   return diag_vec;
+}
+
+/**
+ * 行列が対称行列かどうかのチェック
+ */
+inline
+bool
+MyMatIsSymmetric( const std::vector< std::vector< double > > &A ){
+  return MyMatTrans( A ) == A;
 }
 
 //#########################################################################################
