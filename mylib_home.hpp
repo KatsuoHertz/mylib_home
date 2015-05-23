@@ -700,6 +700,29 @@ operator * ( double k,
   return C;
 }
 
+/**
+ * 行列のスカラー割
+ */
+
+inline
+std::vector< std::vector< double > >
+operator / ( const std::vector< std::vector< double > > &A,
+             double k ){
+  using namespace std;
+  int M = A.size();
+  assert( M > 0 );
+  int N = A[ 0 ].size();
+  assert( N > 0 );
+  assert( k != 0 );
+  vector< vector< double > > C( M, vector< double >( N ) );
+  for( int i = 0; i < M; i++ ){
+    for( int j = 0; j < N; j++ ){
+      C[ i ][ j ] = A[ i ][ j ] * k;
+    }
+  }
+  return C;
+}
+
 /** 
  * 行列の転置
  */
