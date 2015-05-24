@@ -1,7 +1,7 @@
 /**
  * @file mylib_home.hpp
  * @brief 各種便利関数、クラス
- * @version 2015.5.22
+ * @version 2015.5.24
  */
 
 #ifndef MYLIB_HOME_HPP
@@ -878,6 +878,16 @@ MyGetColVector( const std::vector< std::vector< double > > &A,
 }
 
 /**
+ * MyGetColVector() の別名
+ */
+inline
+std::vector< double >
+MyMatColVec( const std::vector< std::vector< double > > &A,
+             int col_index ){
+  return MyGetColVector( A, col_index );
+}
+
+/**
  * 列ベクトルの配列を返す。
  *
  * 行列の転置と同じ
@@ -887,6 +897,16 @@ std::vector< std::vector< double > >
 MyGetColVectors( const std::vector< std::vector< double > > &A ){
   return MyMatTrans( A );
 }
+
+/**
+ * MyGetColVectors() の別名
+ */
+inline
+std::vector< std::vector< double > >
+MyMatColVecs( const std::vector< std::vector< double > > &A ){
+  return MyMatTrans( A );
+}
+
 
 /**
  * 行列の対角成分を返す。
@@ -901,6 +921,15 @@ MyGetDiagVector( const std::vector< std::vector< double > > &A ){
     diag_vec[ i ] = A[ i ][ i ];
   }
   return diag_vec;
+}
+
+/**
+ * MyGetDiagVector() の別名
+ */
+inline
+std::vector< double >
+MyMatDiagVec( const std::vector< std::vector< double > > &A ){
+  return MyGetDiagVector( A );
 }
 
 /**
