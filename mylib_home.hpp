@@ -941,6 +941,20 @@ MyMatIsSymmetric( const std::vector< std::vector< double > > &A ){
   return MyMatTrans( A ) == A;
 }
 
+/**
+ * 与えられたベクトルの要素を対角要素とする行列を返す
+ */
+inline
+std::vector< std::vector< double > >
+MyMatDiag( const std::vector< double > &V ){
+  assert( V.size() > 0 );
+  std::vector< std::vector< double > > A( V.size(), std::vector< double >( V.size(), 0 ) );
+  for( int i = 0; i < V.size(); i++ ){
+    A[ i ][ i ] = V[ i ];
+  }
+  return A;
+}
+
 //#########################################################################################
 // 数学
 //#########################################################################################
@@ -1655,7 +1669,6 @@ int MyQRDecomp( const std::vector< std::vector< double > > &A,
                 std::vector< std::vector< double > > &Q,
                 std::vector< std::vector< double > > &R ){
   using namespace std;
-  using namespace my;
 
   // A は、正方行列＆逆行列が存在する必要（正則）
   assert( MyMatIsSquare( A ) );
@@ -1697,7 +1710,6 @@ int MyEig_QR( const std::vector< std::vector< double > > &A,
               double max_itr_num = 100
               ){
   using namespace std;
-  using namespace my;
   assert( MyMatIsSymmetric( A ) );
   vector< vector< double > > A_k = A, Q, R;
   U = MyMatIdentity( A.size() );
@@ -1711,6 +1723,48 @@ int MyEig_QR( const std::vector< std::vector< double > > &A,
     U = U * Q;
   }//k
   U = MyMatTrans( U );
+  return 0;
+}
+
+/**
+ * 特異値分解。
+ * - 反復計算でなく、直接計算するバージョン。多分、大きな行列には向かない。特異値分解の勉強用。
+ * - P = Ur * MyMatDiag( Sr ) * MyMatTrans( Vr ) となる Ur, Sr, Vr が返される（はず）。
+ * @param P 対象となる、n x N の長方行列。任意でOK（なはず）。
+ * @param Sr 特異値。
+ * @param zero_eig_val_thres ゼロとみなして切り捨てる固有値の閾値。P^TP の固有値に対してなされる。その結果、ランクが r になる。その r が、Ur, Sr, Vr のサイズになる。
+ */
+int
+MySimpleSVD( const std::vector< std::vector< double > > &P,
+             std::vector< std::vector< double > > &Ur,
+             std::vector< double > &Sr,
+             std::vector< std::vector< double > > &Vr,
+             double zero_eig_val_thres = 1E-6 ){
+  using namespace std;
+  vector< vector< double > > N = MyMatTrans( P ) * P;
+  vector< vector< double > > V;
+  vector< double > L;
+  assert( ! MyEig_QR( N, V, L ) );
+  Sr.clear();
+  for( int i = 0; i < L.size(); i++ ){
+    if( MyAbs( L[ i ] ) >= zero_eig_val_thres ){
+      assert( L[ i ] > 0 );
+      Sr.push_back( sqrt( L[ i ] ) );
+    }
+  }
+  int r = Sr.size();
+  Vr.clear();
+  for( int i = 0; i < r; i++ ){
+    Vr.push_back( V[ i ] );
+  }
+  Vr = MyMatTrans( Vr );
+  vector< vector< double > > PVrT = MyMatTrans( P * Vr );
+  Ur.clear();
+  for( int i = 0; i < r; i++ ){
+    assert( Sr[ i ] > 0 );
+    Ur.push_back( PVrT[ i ] / Sr[ i ] );
+  }
+  Ur = MyMatTrans( Ur );
   return 0;
 }
 
