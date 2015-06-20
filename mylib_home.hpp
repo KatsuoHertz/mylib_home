@@ -1,7 +1,7 @@
 /**
  * @file mylib_home.hpp
- * @brief 各種便利関数、クラス
- * @version 2015.5.24
+ * @brief いろいろユーティリティ
+ * @version 2015.6.20
  */
 
 #ifndef MYLIB_HOME_HPP
@@ -12,10 +12,13 @@
 #include <string>
 #include <iterator>
 #include <vector>
-#include <map>
 #include <stack>
+#include <map>
+#include <sstream>
+#include <iterator>
 #include <cassert>
 #include <cstdlib>
+#include <climits>
 #include <cmath>
 #include <cv.h>
 #include <highgui.h>
@@ -67,6 +70,40 @@ std::ostream & operator << ( std::ostream &os, const MyPoint2<T> &p )
 typedef MyPoint2<int> MyPoint2i;
 typedef MyPoint2<double> MyPoint2d;
 typedef MyPoint2<short> MyPoint2s;
+
+/**
+ * ３次元座標値
+ */
+template < typename T >
+struct MyPoint3 {
+  T x;
+  T y;
+  T z;
+  MyPoint3() : x( 0 ), y( 0 ), z( 0 ){ }
+  MyPoint3( T x0, T y0, T z0 ) : x( x0 ), y( y0 ), z( z0 ){ }
+  bool operator == ( const MyPoint3 &rhs ) const {
+    return this->x == rhs.x && this->y == rhs.y && this->z == rhs.z;
+  }
+  bool operator != ( const MyPoint3 &rhs ) const {
+    return this->x != rhs.x || this->y != rhs.y || this->z != rhs.z;
+  }
+};
+
+/**
+ * ３次元座標値の表示
+ */
+template < typename T >
+inline
+std::ostream & operator << ( std::ostream &os, const MyPoint3<T> &p )
+{
+  os << p.x << "\t" << p.y << "\t" << p.z;
+  return os;
+}
+
+typedef MyPoint3<int> MyPoint3i;
+typedef MyPoint3<double> MyPoint3d;
+typedef MyPoint3<float> MyPoint3f;
+typedef MyPoint3<short> MyPoint3s;
 
 /**
  * RGB の画素値
@@ -265,7 +302,7 @@ MyBeginWith( const std::string &str,
 bool
 inline
 MyBeginsWith( const char * str,
-             const char * start ){
+              const char * start ){
   return std::string( str ).find( std::string( start ) ) == 0;
 }
 
@@ -395,7 +432,7 @@ int
 MyReadTextDouble( const char *filepath, 
                   std::vector< std::vector< double > > &data_buf,
                   int col_num = 0
-               ){
+                  ){
   using namespace std;
   ifstream fin( filepath );
   if( !fin ) return -1;
@@ -715,7 +752,7 @@ MyMatTrans( const std::vector< std::vector< double > > &A ){
   return C;
 }
 
-/** 
+/**
  * 行列の表示
  */
 
@@ -734,7 +771,7 @@ std::ostream & operator << ( std::ostream &os,
 
 /**
  * 行列の等号
- */ 
+ */
 inline
 bool operator == ( const std::vector< std::vector< double > > &A,
                    const std::vector< std::vector< double > > &B ){
@@ -750,7 +787,7 @@ bool operator == ( const std::vector< std::vector< double > > &A,
 
 /**
  * 行列のノットイコール
- */ 
+ */
 inline
 bool operator != ( const std::vector< std::vector< double > > &A,
                    const std::vector< std::vector< double > > &B ){
@@ -759,7 +796,7 @@ bool operator != ( const std::vector< std::vector< double > > &A,
 
 /**
  * ベクトルの等号
- */ 
+ */
 inline
 bool operator == ( const std::vector< double > &A,
                    const std::vector< double > &B ){
@@ -772,7 +809,7 @@ bool operator == ( const std::vector< double > &A,
 
 /**
  * ベクトルのノットイコール
- */ 
+ */
 inline
 bool operator != ( const std::vector< double > &A,
                    const std::vector< double > &B ){
@@ -788,7 +825,7 @@ inline
 std::vector< double >
 operator * ( const std::vector< std::vector< double > > &A,
              const std::vector< double > &x
-              ){
+             ){
   assert( A.size() > 0 && A[ 0 ].size() > 0 && A[ 0 ].size() == x.size() );
   std::vector< double > b( A[ 0 ].size(), 0 );
   for( int i = 0; i < A.size(); i++ ){
@@ -799,7 +836,7 @@ operator * ( const std::vector< std::vector< double > > &A,
   return b;
 }
 
-/** 
+/**
  * ベクトルの転置
  * - 横１列の行列になる
  * - N x 1 ベクトル => 1 x N 行列
@@ -815,7 +852,7 @@ MyVecTrans( const std::vector< double > &x ){
   return A;
 }
 
-/** 
+/**
  * ベクトルの行列化
  * - 縦１列の行列になる
  */
@@ -831,7 +868,7 @@ MyVec2Mat( const std::vector< double > &x ){
   return A;
 }
 
-/** 
+/**
  * ゼロベクトルを返す
  */
 inline
@@ -840,7 +877,7 @@ MyVecZero( int n ){
   return std::vector< double >( n, 0 );
 }
 
-/** 
+/**
  * ゼロ行列を返す
  */
 inline
@@ -849,7 +886,7 @@ MyMatZero( int n ){
   return std::vector< std::vector< double > >( n, std::vector< double >( n, 0 ) );
 }
 
-/** 
+/**
  * 単位行列を返す
  */
 inline
@@ -906,7 +943,6 @@ std::vector< std::vector< double > >
 MyMatColVecs( const std::vector< std::vector< double > > &A ){
   return MyMatTrans( A );
 }
-
 
 /**
  * 行列の対角成分を返す。
@@ -1365,7 +1401,6 @@ MyLUDecomp( std::vector< std::vector< double > > &A ){
   int N = A.size();
   assert( N > 0 );
   assert( A[ 0 ].size() == N );
-  using namespace std;
   for( int i = 0; i < N - 1; i++ ){
     if( A[ i ][ i ] == 0 ) return -1; 
     for( int j = i + 1; j < N; j++ ){
@@ -1388,11 +1423,8 @@ MyLUDecomp( std::vector< std::vector< double > > &A ){
 int
 MyAxbSolve_LU( std::vector< std::vector< double > > &A,
                std::vector< double > &x,
-               std::vector< double > &b,
-               bool modify = true
+               std::vector< double > &b
                ){
-  using namespace std;
-
   // 次元
   int N = A.size();
 
@@ -1443,8 +1475,6 @@ MyAxbSolve_LU( const std::vector< std::vector< double > > &L,
                std::vector< double > &x,
                std::vector< double > &b
                ){
-  using namespace std;
-
   // 入力チェック
   assert( MyMatIsSquare( L ) && MyMatIsSquare( U ) );
   assert( MyMatSize( L ) == MyMatSize( U ) );
@@ -1765,6 +1795,213 @@ MySimpleSVD( const std::vector< std::vector< double > > &P,
     Ur.push_back( PVrT[ i ] / Sr[ i ] );
   }
   Ur = MyMatTrans( Ur );
+  return 0;
+}
+
+/**
+ * ３次元の点群データを平面の式（z = a x + b y + c) で回帰する。最小二乗法。
+ */
+int
+MyPlaneFit( const std::vector< double > &x_buf,
+            const std::vector< double > &y_buf,
+            const std::vector< double > &z_buf,
+            double *a,
+            double *b,
+            double *c ){
+  using namespace std;
+  int n = x_buf.size();
+  assert( y_buf.size() == n && z_buf.size() == n );
+  vector< vector< double > > A( 3, vector< double >( 3, 0 ) );
+  vector< double > B( 3, 0 );
+  for( int i = 0; i < n; i++ ){
+    A[ 0 ][ 0 ] += x_buf[ i ] * x_buf[ i ];
+    A[ 0 ][ 1 ] += x_buf[ i ] * y_buf[ i ];
+    A[ 0 ][ 2 ] += x_buf[ i ];
+    A[ 1 ][ 0 ] += x_buf[ i ] * y_buf[ i ];
+    A[ 1 ][ 1 ] += y_buf[ i ] * y_buf[ i ];
+    A[ 1 ][ 2 ] += y_buf[ i ];
+    A[ 2 ][ 0 ] += x_buf[ i ];
+    A[ 2 ][ 1 ] += y_buf[ i ];
+    A[ 2 ][ 2 ] += 1;
+    B[ 0 ] += x_buf[ i ] * z_buf[ i ];
+    B[ 1 ] += y_buf[ i ] * z_buf[ i ];
+    B[ 2 ] += z_buf[ i ];
+  }
+  vector< double > X( 3 );
+  assert( ! MyAxbSolve_LU( A, X, B ) );
+  *a = X[ 0 ];
+  *b = X[ 1 ];
+  *c = X[ 2 ];
+  return 0;
+}
+  
+/**
+ * 離散フーリエ変換
+ * - １次元
+ * - FFT でない。計算量は、データのサイズ n に対して、O(n^2)。
+ * - 入力のデータサイズは、2 の累乗でなくてよい。
+ * @param in_re 入力信号の実部
+ * @param in_im 入力信号の虚部
+ * @param[out] out_re 出力信号の実部
+ * @param[out] out_im 出力信号の虚部
+ */
+int
+MyDFT( const std::vector< double > &in_re,
+       const std::vector< double > &in_im,
+       std::vector< double > &out_re,
+       std::vector< double > &out_im ){
+  using namespace std;
+
+  // データの数
+  int N = in_re.size();
+
+  // 入力チェック
+  assert( N > 0 );
+  assert( in_im.size() == N );
+
+  // 出力バッファのメモリ確保
+  if( out_re.empty() ) out_re.resize( N, 0 );
+  else assert( out_re.size() == N );
+  if( out_im.empty() ) out_im.resize( N, 0 );
+  else assert( out_im.size() == N );
+
+  // 係数の計算
+  for( int k = 0; k < N; k++ ){
+    for( int l = 0; l < N; l++ ){
+      out_re[ k ] += ( in_re[ l ] * cos( 2.0 * M_PI * k * l / N ) +
+                       in_im[ l ] * sin( 2.0 * M_PI * k * l / N ) );
+      out_im[ k ] -= ( in_re[ l ] * sin( 2.0 * M_PI * k * l / N ) -
+                       in_im[ l ] * cos( 2.0 * M_PI * k * l / N ) );
+    }//l
+    // データ数で正規化
+    out_re[ k ] /= N;
+    out_im[ k ] /= N;
+  }//k
+
+  return 0;
+}
+
+/**
+ * 離散フーリエ変換
+ * - 入力の虚部を省略したバージョン
+ */
+int
+MyDFT( const std::vector< double > &in_re,
+       std::vector< double > &out_re,
+       std::vector< double > &out_im ){
+  return MyDFT( in_re, std::vector< double >( in_re.size(), 0 ), out_re, out_im );
+}
+
+/**
+ * 離散フーリエ逆変換
+ * - １次元
+ * - FFT でない。計算量は、データのサイズ n に対して、O(n^2)。
+ * - 入力のデータサイズは、2 の累乗でなくてよい。
+ * @param in_re 入力信号の実部
+ * @param in_im 入力信号の虚部
+ * @param[out] out_re 出力信号の実部
+ * @param[out] out_im 出力信号の虚部
+ */
+int
+MyIDFT( const std::vector< double > &in_re,
+        const std::vector< double > &in_im,
+        std::vector< double > &out_re,
+        std::vector< double > &out_im ){
+  using namespace std;
+
+  // データの数
+  int N = in_re.size();
+
+  // 入力チェック
+  assert( N > 0 );
+  assert( in_im.size() == N );
+
+  // 出力バッファのメモリ確保
+  if( out_re.empty() ) out_re.resize( N, 0 );
+  else assert( out_re.size() == N );
+  if( out_im.empty() ) out_im.resize( N, 0 );
+  else assert( out_im.size() == N );
+
+  // 係数の計算
+  for( int k = 0; k < N; k++ ){
+    for( int l = 0; l < N; l++ ){
+      out_re[ k ] += ( in_re[ l ] * cos( 2.0 * M_PI * k * l / N ) -
+                       in_im[ l ] * sin( 2.0 * M_PI * k * l / N ) );
+      out_im[ k ] += ( in_re[ l ] * sin( 2.0 * M_PI * k * l / N ) +
+                       in_im[ l ] * cos( 2.0 * M_PI * k * l / N ) );
+    }//l
+  }//k
+
+  return 0;
+}
+
+/**
+ * 離散コサイン変換
+ * - １次元
+ * - FFT でない。計算量は、データのサイズ n に対して、O(n^2)。
+ * - 入力のデータサイズは、2 の累乗でなくてよい。
+ * - 複素数は出てこない。実部のみ。
+ * @param in 入力信号
+ * @param[out] out 出力信号
+ */
+int
+MyDCT( const std::vector< double > &in,
+       std::vector< double > &out ){
+  using namespace std;
+
+  // データの数
+  int N = in.size();
+
+  // 入力チェック
+  assert( N > 0 );
+
+  // 出力バッファのメモリ確保
+  if( out.empty() ) out.resize( N, 0 );
+  else assert( out.size() == N );
+
+  // 係数の計算
+  for( int k = 0; k < N; k++ ){
+    for( int l = 0; l < N; l++ ){
+      out[ k ] += in[ l ] * cos( M_PI * k * ( 2.0 * l + 1 ) / ( 2.0 * N ) );
+    }//l
+    out[ k ] *= 2.0 / N;
+  }//k
+
+  return 0;
+}
+
+/**
+ * 離散コサイン逆変換
+ * - １次元
+ * - FFT でない。計算量は、データのサイズ n に対して、O(n^2)。
+ * - 入力のデータサイズは、2 の累乗でなくてよい。
+ * - 複素数は出てこない。実部のみ。
+ * @param in 入力信号
+ * @param[out] out 出力信号
+ */
+int
+MyIDCT( const std::vector< double > &in,
+        std::vector< double > &out ){
+  using namespace std;
+
+  // データの数
+  int N = in.size();
+
+  // 入力チェック
+  assert( N > 0 );
+
+  // 出力バッファのメモリ確保
+  if( out.empty() ) out.resize( N, 0 );
+  else assert( out.size() == N );
+
+  // 係数の計算
+  for( int l = 0; l < N; l++ ){
+    out[ l ] = in[ 0 ] / 2.0;
+    for( int k = 1; k < N; k++ ){
+      out[ l ] += in[ k ] * cos( M_PI * k * ( 2.0 * l + 1 ) / ( 2.0 * N ) );
+    }//l
+  }//k
+
   return 0;
 }
 
