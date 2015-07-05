@@ -120,6 +120,11 @@ class MyImageDat
   void get( vector< T > &dat ) const { dat = _dat; }
   void set( int x, int y, T val ){ _dat[ y * _width + x ] = val; }
   void set( const vector< T > &dat ){ _dat = dat; }
+  void set( const MyImageDat *a ) {
+    assert( a->width() == _width );
+    assert( a->height() == _height );
+    a->get( _dat );
+  }
   void save( const char *filename ) const {
     ofstream ofs( filename, ios::binary );
     assert( ofs.is_open() );
