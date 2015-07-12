@@ -1,7 +1,7 @@
 /**
  * @file mylib_xct.hpp
  * @brief 研究テーマ特化なユーティリティ関数、クラス
- * @version 2015.5.16
+ * @version 2015.7.12
  */
 
 #ifndef MYLIB_XCT_HPP
@@ -259,9 +259,9 @@ struct MyParam
  * - ０度から１８０度まで 
  */
 int
-MyRadonImg( const MyImageDat<double> *img_in,
-            MyImageDat<double> *img_out
-            ){
+MyPrjDat( const MyImageDat<double> *img_in,
+          MyImageDat<double> *img_out
+          ){
   using namespace std;
   int num_detectors = img_out->width();
   int num_projections = img_out->height();
@@ -328,6 +328,60 @@ MyRadonImg( const MyImageDat<double> *img_in,
 }
 
 /**
+ * ラドン変換
+ * - 2x2 のサブピクセルに分解しないバージョン
+ */
+int
+MyPrjDat2( const MyImageDat<double> *img_in,
+           MyImageDat<double> *img_out
+           ){
+  using namespace std;
+  int num_detectors = img_out->width();
+  int num_projections = img_out->height();
+  assert( num_projections > 0 );
+  double proj_deg_step = 180.0 / num_projections;
+  assert( num_detectors > 0 );
+  vector<double> line_buf( num_detectors, 0 );
+  int img_width = img_in->width();
+  int img_height = img_in->height();
+  // 各投影毎に
+  for( int i = 0; i < num_projections; i++ ){
+    // 角度
+    double theta = i * proj_deg_step * M_PI / 180.0;
+    double sin_th = sin( theta );
+    double cos_th = cos( theta );
+    // ラインバッファの初期化
+    fill( line_buf.begin(), line_buf.end(), 0 );
+    // 各画素ごとに
+    for( int y = 0; y < img_height; y++ ){
+      for( int x = 0; x < img_width; x++ ){
+        // この画素位置での値
+        double val_in = img_in->get( x, y );
+        // 中心位置移動
+        double x2 = x - img_width / 2 + 0.75; //octaveのradon()に合わせる
+        double y2 = y - img_height / 2 + 0.75; //octaveのradon()に合わせる
+        // 投影位置計算
+        double Y = cos_th * x2 - sin_th * y2;//octaveのradon()に合わせる
+        // オフセット
+        Y = Y + num_detectors / 2;
+        assert( Y >= 0 && Y < num_detectors );
+        // 最も近い２つの bin にサブピクセルの値を分割
+        int Y1 = (int)Y;
+        // 比例配分する
+        double a = Y - Y1;
+        if( Y1 < line_buf.size() ) line_buf[ Y1 ] += ( 1 - a ) * val_in;
+        if( Y1 + 1 < line_buf.size() ) line_buf[ Y1 + 1 ] += a * val_in;
+      }//x
+    }//y
+    // バッファにしまう
+    for( int j = 0; j < num_detectors; j++ ){
+      img_out->set( j, i, line_buf[ j ] );
+    }//j
+  }//i
+  return 0;
+}
+
+/**
  * Klein-Nishina の関数
  */
 double MyfKN( double a ){
@@ -366,8 +420,10 @@ MyCalcSino( const MyImageDat<double> *img_pe,
                                                             param->num_projections );
   MyImageDat<double> *img_cs_sino = new MyImageDat<double>( param->num_detectors,
                                                             param->num_projections );
-  MyRadonImg( img_pe, img_pe_sino );
-  MyRadonImg( img_cs, img_cs_sino );
+  // MyRadonImg( img_pe, img_pe_sino );
+  // MyRadonImg( img_cs, img_cs_sino );
+  MyPrjDat( img_pe, img_pe_sino );
+  MyPrjDat( img_cs, img_cs_sino );
   double E1 = param->ene_bins[ ene_bin_index ];
   double E2 = param->ene_bins[ ene_bin_index + 1 ];
   double dE = param->xray->xStep();
@@ -401,6 +457,101 @@ MyCalcSino( const MyImageDat<double> *img_pe,
   }//y
   delete img_pe_sino;
   delete img_cs_sino;
+  return 0;
+}
+
+/**
+ * 逆投影
+ */
+int
+MyPrjBackDat( const MyImageDat<double> *img_in,
+              MyImageDat<double> *img_out
+              ){
+  using namespace std;
+
+  int num_detectors = img_in->width();
+  int num_projections = img_in->height();
+  double proj_deg_step = 180.0 / num_projections;
+  int out_width = img_out->width();
+  int out_height = img_out->height();
+
+  // 出力バッファを初期化
+  for( int y = 0; y < out_height; y++ ){
+    for( int x = 0; x < out_width; x++ ){
+      img_out->set( x, y, 0 );
+    }//x
+  }//y
+
+  // 各投影毎に
+  for( int i = 0; i < num_projections; i++ ){
+
+    double theta = i * proj_deg_step * M_PI / 180.0;
+    double sin_th = sin( theta );
+    double cos_th = cos( theta );
+
+    // 各画素について
+    for( int y = 0; y < out_height; y++ ){
+      for( int x = 0; x < out_width; x++ ){
+
+        // 画像の中心を原点とした座標に直す
+        // int x2 = x - out_width / 2;
+        // int y2 = y - out_height / 2;
+        int x2 = x - out_width / 2 + 0.75;
+        int y2 = y - out_height / 2 + 0.75;
+        
+        // この画素位置の検出器上での位置
+        double Y = cos_th * x2 - sin_th * y2;
+
+        // 検出器の端からの位置に直す（オフセットを加える）
+        Y = Y + num_detectors / 2;
+
+        // 最も近い２つの bin を探す
+        int Y1 = (int)Y;
+        int Y2 = Y1 + 1;
+
+        // 検出器の範囲内であれば処理
+        if( Y2 < img_in->width() ){
+
+          // 検出器の値
+          double val_1 = img_in->get( Y1, i );
+          double val_2 = img_in->get( Y2, i );
+          
+          // 加重平均した値を今の画素位置に足しこむ
+          double a = Y - Y1;
+          double val_out = ( 1 - a ) * val_1 + a * val_2;
+          img_out->set( x, y, img_out->get( x, y ) + val_out );
+
+        }//if
+        else if( Y1 < img_in->width() ){
+          double val_out = img_in->get( Y1, i );
+          img_out->set( x, y, img_out->get( x, y ) + val_out );
+        }
+        
+      }//x
+    }//y
+    
+  }//i
+
+  // 画素値の総和を揃える
+  double sum_in = 0;
+  double sum_out = 0;
+  for( int y = 0; y < img_in->height(); y++ ){
+    for( int x = 0; x < img_in->width(); x++ ){
+      sum_in += img_in->get( x, y );
+    }
+  }
+  for( int y = 0; y < img_out->height(); y++ ){
+    for( int x = 0; x < img_out->width(); x++ ){
+      sum_out += img_out->get( x, y );
+    }
+  }
+  assert( sum_out != 0 );
+  for( int y = 0; y < img_out->height(); y++ ){
+    for( int x = 0; x < img_out->width(); x++ ){
+      img_out->set( x, y, img_out->get( x, y ) * ( sum_in / sum_out ) );
+    }
+  }
+  
   return 0;
 }
 
